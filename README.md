@@ -1,59 +1,161 @@
-# CursoBigoteAngular
+# 🎬 Movie DB - Angular Dashboard
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.5.
+A movie search and discovery dashboard built with Angular 21 as a learning project for developers coming from React.
 
-## Development server
+![Angular](https://img.shields.io/badge/Angular-21.1.0-DD0031?style=flat&logo=angular)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?style=flat&logo=typescript)
+![Bun](https://img.shields.io/badge/Bun-1.3.9-000000?style=flat&logo=bun)
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 🚀 Quick Start
 
 ```bash
-ng generate component component-name
+# 1. Install dependencies
+bun install
+
+# 2. Configure API keys (see below)
+# Create src/environments/environment.ts with your TMDb API key
+
+# 3. Start development server
+bun run start
+
+# 4. Open http://localhost:4200
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## ⚙️ Prerequisites
 
-```bash
-ng generate --help
+- **Node.js**: 18+
+- **Bun**: Latest (recommended) or npm/yarn
+- **TMDb API Key**: Free at [themoviedb.org](https://www.themoviedb.org/settings/api)
+
+## 🔑 API Configuration
+
+Create `src/environments/environment.ts`:
+
+```typescript
+export const environment = {
+  production: false,
+  tmdbApiKey: 'YOUR_API_KEY_HERE',
+  tmdbBaseUrl: 'https://api.themoviedb.org/3',
+};
 ```
 
-## Building
+Create `src/environments/environment.prod.ts`:
 
-To build the project run:
-
-```bash
-ng build
+```typescript
+export const environment = {
+  production: true,
+  tmdbApiKey: 'YOUR_API_KEY_HERE',
+  tmdbBaseUrl: 'https://api.themoviedb.org/3',
+};
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+> **Note**: Get your free TMDb API key at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api)
 
-## Running unit tests
+## 📦 Available Scripts
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+| Command | Description |
+|---------|-------------|
+| `bun run start` | Start dev server (http://localhost:4200) |
+| `bun run build` | Production build + format |
+| `bun run watch` | Watch mode for development |
+| `bun run test` | Run tests with Vitest |
+| `bun run format` | Format code with Biome |
+| `bun run serve:ssr` | Serve SSR production build |
 
-```bash
-ng test
+## 🎯 Features
+
+- **Movie Search**: Search movies by title using TMDb API
+- **Top Rated Slider**: Display top 10 rated movies from last year on home page
+- **Movie Details**: Full movie information including plot, genres, ratings, cast
+- **Favorites**: Save favorite movies with localStorage persistence
+- **Dark Mode**: Toggle between light and dark themes
+- **SSR Support**: Server-side rendering for better SEO and performance
+- **Responsive**: Works on mobile, tablet, and desktop
+
+## 🛠 Tech Stack
+
+- **Framework**: Angular 21 (Standalone Components, Signals)
+- **Styling**: SCSS with CSS variables for theming
+- **State**: Angular Signals + Services
+- **API**: TMDb (The Movie Database)
+- **Build**: Angular CLI + Bun
+- **Linting**: Biome
+- **Testing**: Vitest
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── components/          # Shared components
+│   │   └── app-header.component.ts
+│   ├── features/
+│   │   └── movies/
+│   │       ├── components/   # Movie-specific components
+│   │       │   ├── movie-card.component.ts
+│   │       │   ├── movie-grid.component.ts
+│   │       │   ├── movie-slider.component.ts
+│   │       │   └── search-bar.component.ts
+│   │       ├── models/      # TypeScript interfaces
+│   │       ├── pages/       # Page components
+│   │       │   ├── favorites.page.ts
+│   │       │   ├── movie-detail.page.ts
+│   │       │   └── movies-list.page.ts
+│   │       └── services/    # Business logic
+│   │           ├── favorites.service.ts
+│   │           └── movies-api.service.ts
+│   ├── services/            # App-wide services
+│   │   └── theme.service.ts
+│   ├── app.config.ts        # App configuration
+│   └── app.routes.ts        # Routing configuration
+├── environments/            # Environment config
+└── styles.scss              # Global styles
 ```
 
-## Running end-to-end tests
+## 🎨 Key Concepts for React Devs
 
-For end-to-end (e2e) testing, run:
+| React | Angular |
+|-------|---------|
+| `useState()` | `signal()` |
+| `useEffect()` | `effect()` or OnPush + signals |
+| `useMemo()` | `computed()` |
+| `.map()` | `@for()` control flow |
+| JSX | Templates with `{{ }}` |
+| Redux/Zustand | Services + Signals |
 
-```bash
-ng e2e
+## 🔍 Key Files
+
+- **`movies-api.service.ts`**: TMDb API integration with signals
+- **`favorites.service.ts`**: localStorage persistence with SSR guards
+- **`theme.service.ts`**: Dark mode with CSS variables
+- **`movie-slider.component.ts`**: Horizontal scrollable slider
+- **`movie-grid.component.ts`**: Responsive movie grid
+
+## 📝 Development Notes
+
+### SSR Compatibility
+Services using `localStorage` must check `isPlatformBrowser()`:
+```typescript
+constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  if (isPlatformBrowser(this.platformId)) {
+    // Safe to use localStorage
+  }
+}
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+### Signals Usage
+- Use `signal()` for writable state
+- Use `.asReadonly()` for public read-only access
+- Use `computed()` for derived state
 
-## Additional Resources
+### Animations
+- View Transitions via `withViewTransitions()` in router config
+- CSS keyframe animations for component-level effects
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## 📄 License
+
+MIT - Built for learning purposes
+
+---
+
+Built with ❤️ for learning Angular coming from React

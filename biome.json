@@ -1,70 +1,91 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
 	"vcs": {
-		"enabled": true,
+		"enabled": false,
 		"clientKind": "git",
-		"useIgnoreFile": true
+		"useIgnoreFile": false
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": [
+			"**/*.ts",
+			"**/*.tsx",
+			"**/*.js",
+			"**/*.jsx",
+			"**/*.css",
+			"**/*.scss",
+			"!**/routeTree.gen.ts"
+		]
 	},
 	"formatter": {
 		"enabled": true,
-		"formatWithErrors": false,
 		"indentStyle": "tab",
-		"indentWidth": 4,
-		"lineEnding": "lf",
 		"lineWidth": 120,
-		"attributePosition": "auto",
-		"bracketSameLine": false,
-		"bracketSpacing": true,
-		"expand": "auto",
-		"useEditorconfig": true
+		"attributePosition": "multiline"
 	},
 	"linter": {
 		"enabled": true,
 		"rules": {
 			"recommended": true,
-			"complexity": {
-				"useLiteralKeys": "off"
-			},
 			"style": {
-				"useImportType": "off"
+				"useImportType": "off",
+				"useTemplate": "off",
+				"noNonNullAssertion": "off",
+				"noDescendingSpecificity": "off"
+			},
+			"a11y": {
+				"useKeyWithClickEvents": "off",
+				"noStaticElementInteractions": "off",
+				"noSvgWithoutTitle": "off",
+				"useValidAnchor": "off",
+				"useAnchorContent": "off",
+				"useHeadingContent": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "off",
+				"noTemplateCurlyInString": "off",
+				"noArrayIndexKey": "off",
+				"noEmptyInterface": "off",
+				"useIterableCallbackReturn": "off",
+				"noDocumentCookie": "off",
+				"noImplicitAnyLet": "off",
+				"noConfusingVoidType": "off",
+				"noGlobalIsNan": "off"
+			},
+			"correctness": {
+				"noNestedComponentDefinitions": "off",
+				"useUniqueElementIds": "off",
+				"useExhaustiveDependencies": "off",
+				"useParseIntRadix": "off"
+			},
+			"complexity": {
+				"useOptionalChain": "off",
+				"noUselessLoneBlockStatements": "off",
+				"useLiteralKeys": "off",
+				"noUselessFragments": "off",
+				"useFlatMap": "off",
+				"useIndexOf": "off",
+				"noImportantStyles": "off",
+				"noUselessTernary": "off"
+			},
+			"performance": {
+				"noDynamicNamespaceImportAccess": "off",
+				"noAccumulatingSpread": "off"
 			}
 		}
 	},
 	"javascript": {
 		"formatter": {
-			"jsxQuoteStyle": "single",
-			"quoteProperties": "asNeeded",
-			"trailingCommas": "all",
-			"semicolons": "always",
-			"arrowParentheses": "always",
-			"bracketSameLine": false,
-			"quoteStyle": "single",
-			"attributePosition": "auto",
-			"bracketSpacing": true
-		}
+			"quoteStyle": "single"
+		},
+		"linter": {}
 	},
-	"json": {
+	"css": {
 		"formatter": {
-			"indentWidth": 4,
-			"lineWidth": 100,
-			"trailingCommas": "none",
-			"bracketSpacing": false
+			"indentStyle": "tab",
+			"quoteStyle": "double"
 		}
 	},
-	"html": {
-		"formatter": {
-			"indentScriptAndStyle": false,
-			"selfCloseVoidElements": "always"
-		}
-	},
-	"overrides": [
-		{
-			"includes": ["*.html"]
-		}
-	],
 	"assist": {
 		"enabled": true,
 		"actions": {
