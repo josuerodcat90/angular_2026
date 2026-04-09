@@ -53,6 +53,7 @@ import type { Movie } from '../models';
 						<select 
 							[value]="apiService.selectedYear()"
 							(change)="onYearChange($event)"
+							aria-label="Select year for top rated movies"
 							class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
 						>
 							@for (year of apiService.availableYears(); track year) {
@@ -73,10 +74,11 @@ import type { Movie } from '../models';
 			<!-- Sort Controls (show when we have search results) -->
 			@if (apiService.searchResults().length > 0) {
 				<div class="mt-8 flex items-center justify-center gap-2">
-					<span class="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
+					<span id="sort-label" class="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
 					<select 
 						[value]="apiService.sortOption()"
 						(change)="onSortChange($event)"
+						aria-labelledby="sort-label"
 						class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
 					>
 						<option value="year-asc">Year (Oldest) (default)</option>

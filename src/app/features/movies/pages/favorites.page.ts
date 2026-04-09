@@ -33,10 +33,11 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 			<!-- Sort Controls -->
 			@if (favService.favorites().length > 0) {
 				<div class="flex items-center justify-center mb-4 gap-2">
-					<span class="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
+					<span id="fav-sort-label" class="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
 					<select 
 						[value]="favService.sortOption()"
 						(change)="onSortChange($event)"
+						aria-labelledby="fav-sort-label"
 						class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="none">Default (added order)</option>
