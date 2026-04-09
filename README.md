@@ -67,7 +67,7 @@ export const environment = {
 
 - **Movie Search**: Real-time search with debounce, search history persistence
 - **Sorting**: Sort results by year, rating, or title (ascending/descending)
-- **Top Rated Slider**: Horizontal slider showing top 10 rated movies from last year
+- **Top Rated Slider**: Horizontal slider showing top rated movies from current year (configurable)
 - **Movie Details**: Full movie information with frosted glass hero design
 - **Scenes Gallery**: Browse up to 20 backdrops with a pill showing additional images (+X)
 - **Image Modal**: Interactive modal with keyboard navigation (←, →, Esc), smooth fade transitions, and body scroll lock
