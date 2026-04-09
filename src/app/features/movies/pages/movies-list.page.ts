@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MoviesApiService } from '../services/movies-api.service';
 import { FavoritesService } from '../services/favorites.service';
@@ -34,38 +34,76 @@ import type { Movie } from '../models';
 	imports: [CommonModule, SearchBarComponent, MovieGridComponent, MovieSliderComponent],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
-		<div class="movies-list-page">
-			<header class="movies-list-page__header">
-				<h1>🎬 Movie Search</h1>
-				<p>Find your favorite movies, build a collection of favorites</p>
+		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-300 flex flex-col flex-grow rounded-b-xl">
+			<header class="text-center mb-8">
+					<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-2">
+						<i class="ph ph-video text-4xl text-blue-600 dark:text-blue-400"></i> Movie Search
+					</h1>
+				<p class="text-gray-600 dark:text-gray-300 text-lg">Find your favorite movies, build a collection of favorites</p>
 			</header>
 
 			<!-- Top Rated Slider (only show if we have movies) -->
-			@if (apiService.trendingMovies().length > 0) {
-				<section class="movies-list-page__slider-section">
-					<h2 class="slider-title">🏆 Top Rated from {{ lastYear }}</h2>
+			@if (apiService.trendingMovies().length > 0 || apiService.isLoading()) {
+				<section class="mb-8">
+					<div class="flex items-center justify-between mb-4 flex-wrap gap-4">
+						<h2 class="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+							<i class="ph ph-medal text-3xl text-amber-500 dark:text-amber-400"></i> Top Rated
+						</h2>
+						<!-- Year Selector -->
+						<select 
+							[value]="apiService.selectedYear()"
+							(change)="onYearChange($event)"
+							class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+						>
+							@for (year of apiService.availableYears(); track year) {
+								<option [value]="year">{{ year }}</option>
+							}
+						</select>
+					</div>
 					<app-movie-slider [movies]="apiService.trendingMovies" />
 				</section>
 			}
 
 			<app-search-bar
+				[initialValue]="apiService.lastSearchQuery()"
 				(search)="onSearch($event)"
 				(clearSearch)="onClearSearch()"
 			/>
 
+			<!-- Sort Controls (show when we have search results) -->
+			@if (apiService.searchResults().length > 0) {
+				<div class="mt-8 flex items-center justify-center gap-2">
+					<span class="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
+					<select 
+						[value]="apiService.sortOption()"
+						(change)="onSortChange($event)"
+						class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
+					>
+						<option value="year-asc">Year (Oldest) (default)</option>
+						<option value="year-desc">Year (Newest)</option>
+						<option value="rating-desc">Rating (Highest)</option>
+						<option value="rating-asc">Rating (Lowest)</option>
+						<option value="title-asc">Title (A-Z)</option>
+						<option value="title-desc">Title (Z-A)</option>
+					</select>
+				</div>
+			}
+
 			<!-- Loading State -->
 			@if (apiService.isLoading()) {
-				<div class="movies-list-page__loading">
-					<p>Searching for movies...</p>
+				<div class="text-center p-8 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md my-4">
+					<p class="text-blue-600 dark:text-blue-400 text-lg">
+						<i class="ph ph-spinner animate-spin text-xl align-middle"></i> Searching for movies...
+					</p>
 				</div>
 			}
 
 			<!-- Error State -->
 			@if (apiService.error()) {
-				<div class="movies-list-page__error">
-					<p>{{ apiService.error() }}</p>
-					<button (click)="onRetry()" class="movies-list-page__retry-btn">
-						Try Again
+				<div class="bg-red-50 dark:bg-red-900/20 border border-red-500 text-red-700 dark:text-red-400 p-4 rounded-lg shadow-md my-4">
+					<p class="mb-4">{{ apiService.error() }}</p>
+					<button (click)="onRetry()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
+						<i class="ph ph-arrow-clockwise mr-2"></i>Try Again
 					</button>
 				</div>
 			}
@@ -73,120 +111,18 @@ import type { Movie } from '../models';
 			<!-- Grid Display -->
 			@if (!apiService.isLoading() && !apiService.error()) {
 				<app-movie-grid
-					[movies]="apiService.searchResults"
+					[movies]="apiService.sortedSearchResults"
 					[isFavoriteCheck]="isFavoriteCheck"
 					(favoriteToggled)="onFavoriteToggled($event)"
 				/>
 			}
 
 			<!-- Favorites Badge -->
-			<div class="movies-list-page__favorites-badge">
-				❤️ {{ favService.favoriteCount() }} favorite(s)
+			<div class="text-center p-4 text-gray-600 dark:text-gray-400 text-sm mt-8">
+				<i class="ph ph-heart text-lg align-middle text-red-500"></i> {{ favService.favoriteCount() }} favorite(s)
 			</div>
 		</div>
 	`,
-	styles: [
-		`
-			.movies-list-page {
-				min-height: 100vh;
-				background: var(--color-bg-secondary);
-				padding: 1rem;
-				max-width: 1000px;
-				margin: 0 auto;
-				transition: background-color 0.3s ease;
-			}
-
-			.movies-list-page__header {
-				text-align: center;
-				margin-bottom: 2rem;
-				color: var(--color-text-primary);
-			}
-
-			.movies-list-page__header h1 {
-				margin: 0 0 0.5rem 0;
-				font-size: 2.5rem;
-			}
-
-			.movies-list-page__header p {
-				margin: 0;
-				color: var(--color-text-secondary);
-				font-size: 1.1rem;
-			}
-
-			.movies-list-page__loading,
-			.movies-list-page__error {
-				text-align: center;
-				padding: 2rem;
-				background: var(--color-bg-secondary);
-				border-radius: 8px;
-				margin: 1rem 0;
-				box-shadow: 0 2px 8px var(--color-shadow);
-			}
-
-			.movies-list-page__loading {
-				color: var(--color-accent);
-				font-size: 1.1rem;
-			}
-
-			.movies-list-page__error {
-				background: color-mix(in srgb, var(--color-error) 10%, var(--color-bg-secondary));
-				color: var(--color-error);
-				border: 1px solid var(--color-error);
-			}
-
-			.movies-list-page__error p {
-				margin: 0 0 1rem 0;
-				font-size: 1rem;
-			}
-
-			.movies-list-page__retry-btn {
-				padding: 0.75rem 1.5rem;
-				background: var(--color-error);
-				color: white;
-				border: none;
-				border-radius: 4px;
-				font-size: 1rem;
-				cursor: pointer;
-				transition: background-color 0.2s;
-			}
-
-			.movies-list-page__retry-btn:hover {
-				background: color-mix(in srgb, var(--color-error) 80%, black);
-			}
-
-			.movies-list-page__favorites-badge {
-				text-align: center;
-				padding: 1rem;
-				color: var(--color-text-secondary);
-				font-size: 0.95rem;
-				margin-top: 2rem;
-			}
-
-			.movies-list-page__slider-section {
-				margin-bottom: 2rem;
-			}
-
-			.slider-title {
-				margin: 0 0 1rem 0;
-				font-size: 1.5rem;
-				color: var(--color-text-primary);
-			}
-
-			@media (max-width: 768px) {
-				.movies-list-page {
-					padding: 0.5rem;
-				}
-
-				.movies-list-page__header h1 {
-					font-size: 1.75rem;
-				}
-
-				.movies-list-page__header p {
-					font-size: 1rem;
-				}
-			}
-		`,
-	],
 })
 export class MoviesListPage implements OnInit {
 	/**
@@ -197,22 +133,26 @@ export class MoviesListPage implements OnInit {
 		readonly favService: FavoritesService,
 	) {}
 
-	/**
-	 * Get last year for display
-	 */
-	get lastYear(): number {
-		return new Date().getFullYear() - 1;
+	ngOnInit() {
+		// Always reset to current year and reload when entering home
+		this.apiService.resetSelectedYear();
+		this.apiService.getTopRatedFromYear(this.apiService.selectedYear()).subscribe();
 	}
 
-	ngOnInit() {
-		// Load trending movies for the slider
-		this.apiService.getTopRatedFromLastYear().subscribe();
+	/**
+	 * Handle year change from selector
+	 */
+	onYearChange(event: Event) {
+		const select = event.target as HTMLSelectElement;
+		const year = parseInt(select.value, 10);
+		this.apiService.selectedYear.set(year);
+		this.apiService.getTopRatedFromYear(year).subscribe();
 	}
 
 	/**
 	 * Handle search submission from SearchBarComponent
 	 */
-	onSearch(query: { title: string; year?: number }) {
+	onSearch(query: { title: string }) {
 		// Call API service to search
 		// The service updates its signals, component reads via apiService.searchResults
 		this.apiService.search(query.title).subscribe();
@@ -224,6 +164,15 @@ export class MoviesListPage implements OnInit {
 	onClearSearch() {
 		this.apiService.searchResults.set([]);
 		this.apiService.error.set(null);
+		this.apiService.clearLastSearch();
+	}
+
+	/**
+	 * Handle sort change
+	 */
+	onSortChange(event: Event) {
+		const select = event.target as HTMLSelectElement;
+		this.apiService.sortOption.set(select.value);
 	}
 
 	/**

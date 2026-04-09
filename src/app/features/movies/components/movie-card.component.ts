@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter } from '@angular/core';
+import {
+	ChangeDetectionStrategy,
+	ChangeDetectorRef,
+	Component,
+	Input,
+	Output,
+	EventEmitter,
+	OnInit,
+	OnChanges,
+	signal,
+} from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import type { Movie } from '../models';
 
@@ -9,10 +20,9 @@ import type { Movie } from '../models';
  * - Movie poster (with N/A fallback)
  * - Title
  * - Year
- * - Favorite button (heart icon)
+ * - Favorite button
  *
- * Events:
- * - favoriteToggled: emitted when heart button clicked
+ * Features:
  * - Click card: navigates to detail page
  *
  * Design:
@@ -23,135 +33,88 @@ import type { Movie } from '../models';
 @Component({
 	selector: 'app-movie-card',
 	standalone: true,
-	changeDetection: ChangeDetectionStrategy.OnPush,
+	imports: [CommonModule],
+	providers: [DecimalPipe],
+	changeDetection: ChangeDetectionStrategy.Default, // Changed to Default to ensure changes are detected
 	template: `
-		<div class="movie-card" (click)="onCardClick()">
-			<div class="movie-card__poster">
-				<img
-					[src]="posterUrl"
-					[alt]="movie.Title"
-					(error)="onImageError($event)"
-					class="movie-card__image"
-				/>
-			</div>
+		<div 
+			class="movie-card-wrapper"
+			[style.--animation-delay]="animationDelay"
+			(click)="onCardClick()"
+		>
+			<div class="flex flex-col rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer h-full animate-fade-in-up">
+				<div class="w-full h-[300px] overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0 relative overflow-hidden">
+					<!-- Frosted glass background effect -->
+					<div class="absolute inset-0 bg-cover bg-center blur-2xl opacity-70 scale-110" [style.backgroundImage]="'url(' + posterUrl + ')'"></div>
+					<!-- Frosted glass overlay -->
+					<div class="absolute inset-0 bg-white/10 dark:bg-black/30 backdrop-blur-sm"></div>
+					<!-- Main image centered -->
+					<img
+						[src]="posterUrl"
+						[alt]="movie.Title"
+						(error)="onImageError($event)"
+						class="relative w-full h-full object-contain z-10 rounded-lg"
+					/>
+				</div>
 
-			<div class="movie-card__content">
-				<h3 class="movie-card__title">{{ movie.Title }}</h3>
-				<p class="movie-card__year">{{ movie.Year }}</p>
-			</div>
+				<div class="p-3 flex flex-col gap-1 min-h-[88px]">
+					<h3 class="text-base font-semibold leading-tight text-gray-900 dark:text-white line-clamp-2">{{ movie.Title }}</h3>
+					<div class="flex items-center justify-between mt-auto">
+						<span class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+							<i class="ph ph-calendar-blank text-xs mr-1"></i>{{ movie.Year }}
+						</span>
+						<span class="text-xs font-medium flex items-center" [class.text-yellow-600]="movie.voteAverage" [class.dark:text-yellow-400]="movie.voteAverage" [class.text-gray-400]="!movie.voteAverage">
+							<i class="ph ph-star text-[10px] mr-1"></i>{{ movie.voteAverage ? formatRating(movie.voteAverage) + '/10' : 'N/A' }}
+						</span>
+					</div>
+				</div>
 
-			<button
-				(click)="onFavoriteBtnClick($event)"
-				class="movie-card__favorite-btn"
-				[class.favorited]="isFavorite"
-				type="button"
-				aria-label="Toggle favorite"
-			>
-				<span class="movie-card__favorite-icon">
-					{{ isFavorite ? '❤️' : '🤍' }}
-				</span>
-				{{ isFavorite ? 'Favorited' : 'Favorite' }}
-			</button>
+				<button
+					(click)="onFavoriteBtnClick($event)"
+					(mouseenter)="onHover(true)"
+					(mouseleave)="onHover(false)"
+					class="group flex items-center justify-center gap-2 p-2 mx-2 mb-2 border-none rounded bg-gray-100 dark:bg-gray-700 text-white text-sm font-medium cursor-pointer transition-colors"
+					[class.bg-pink-500]="isFavorite"
+					[class.dark:bg-pink-600]="isFavorite"
+					[class.hover:bg-gray-200]="!isFavorite"
+					[class.dark:hover:bg-gray-600]="!isFavorite"
+					[class.hover:bg-pink-600]="isFavorite"
+					[class.dark:hover:bg-pink-700]="isFavorite"
+					type="button"
+					[title]="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
+					aria-label="Toggle favorite"
+				>
+					<i class="text-lg" 
+						[class]="!isFavorite ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')">
+					</i>
+					<span class="group-hover:hidden">{{ isFavorite ? 'Favorited' : 'Add favorite' }}</span>
+					<span class="hidden group-hover:inline">{{ isFavorite ? 'Remove' : 'Add favorite' }}</span>
+				</button>
+			</div>
 		</div>
 	`,
-	styles: [
-		`
-			.movie-card {
-				display: flex;
-				flex-direction: column;
-				gap: 0.75rem;
-				border-radius: 8px;
-				overflow: hidden;
-				background: var(--color-bg-primary);
-				box-shadow: 0 2px 8px var(--color-shadow);
-				transition: transform 0.2s, box-shadow 0.2s;
-				cursor: pointer;
-				height: 100%;
+	styles: `
+		.movie-card-wrapper {
+			animation-delay: var(--animation-delay, 0ms);
+		}
+		.animate-fade-in-up {
+			opacity: 0;
+			animation: fadeInUp 0.4s ease-out forwards;
+		}
+		
+		@keyframes fadeInUp {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
 			}
-
-			.movie-card:hover {
-				transform: translateY(-4px);
-				box-shadow: 0 4px 16px var(--color-shadow-heavy);
+			to {
+				opacity: 1;
+				transform: translateY(0);
 			}
-
-			.movie-card__poster {
-				width: 100%;
-				height: 300px;
-				overflow: hidden;
-				background: var(--color-bg-tertiary);
-				flex-shrink: 0;
-			}
-
-			.movie-card__image {
-				width: 100%;
-				height: 100%;
-				object-fit: cover;
-			}
-
-			.movie-card__content {
-				padding: 0.75rem;
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-				gap: 0.25rem;
-			}
-
-			.movie-card__title {
-				margin: 0;
-				font-size: 1rem;
-				font-weight: 600;
-				line-height: 1.3;
-				color: var(--color-text-primary);
-				overflow: hidden;
-				text-overflow: ellipsis;
-				display: -webkit-box;
-				-webkit-line-clamp: 2;
-				-webkit-box-orient: vertical;
-			}
-
-			.movie-card__year {
-				margin: 0;
-				font-size: 0.875rem;
-				color: var(--color-text-secondary);
-			}
-
-			.movie-card__favorite-btn {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				gap: 0.5rem;
-				padding: 0.5rem 1rem;
-				margin: 0.5rem;
-				border: none;
-				border-radius: 4px;
-				background: var(--color-bg-secondary);
-				color: var(--color-text-primary);
-				font-size: 0.875rem;
-				font-weight: 500;
-				cursor: pointer;
-				transition: background-color 0.2s, color 0.2s;
-			}
-
-			.movie-card__favorite-btn:hover {
-				background: var(--color-bg-tertiary);
-			}
-
-			.movie-card__favorite-btn.favorited {
-				background: color-mix(in srgb, #e91e63 20%, var(--color-bg-secondary));
-				color: #e91e63;
-			}
-
-			.movie-card__favorite-btn.favorited:hover {
-				background: color-mix(in srgb, #e91e63 30%, var(--color-bg-secondary));
-			}
-
-			.movie-card__favorite-icon {
-				font-size: 1.1em;
-			}
-		`,
-	],
+		}
+	`,
 })
-export class MovieCardComponent {
+export class MovieCardComponent implements OnInit, OnChanges {
 	/**
 	 * The movie object to display
 	 */
@@ -161,6 +124,32 @@ export class MovieCardComponent {
 	 * Whether movie is currently favorited
 	 */
 	@Input({ required: true }) isFavorite = false;
+
+	/**
+	 * Delay for staggered animation (passed from parent grid)
+	 */
+	@Input() fadeInDelay = 0;
+
+	/**
+	 * Key to force animation restart when parent re-renders
+	 */
+	@Input() fadeInKey = 0;
+
+	/**
+	 * Track hover state for icon change
+	 */
+	isHovering = signal(false);
+
+	onHover(hovering: boolean) {
+		this.isHovering.set(hovering);
+	}
+
+	/**
+	 * Computed animation delay
+	 */
+	get animationDelay(): string {
+		return `${this.fadeInDelay * 50}ms`;
+	}
 
 	/**
 	 * Emitted when favorite button clicked
@@ -174,12 +163,36 @@ export class MovieCardComponent {
 
 	private readonly PLACEHOLDER_POSTER = '/assets/placeholder.png';
 
-	constructor(private router: Router) {
+	constructor(
+		private router: Router,
+		private cdr: ChangeDetectorRef,
+		private decimalPipe: DecimalPipe,
+	) {
 		this.posterUrl = this.PLACEHOLDER_POSTER;
 	}
 
 	ngOnInit() {
 		this.updatePosterUrl();
+		// Start animation when component initializes
+		this.triggerAnimation();
+	}
+
+	ngOnChanges() {
+		// Restart animation when inputs change (new movie data)
+		this.triggerAnimation();
+	}
+
+	private triggerAnimation() {
+		// Use setTimeout to ensure the DOM is ready and animation plays
+		setTimeout(() => {
+			const element = document.querySelector('.animate-fade-in-up') as HTMLElement;
+			if (element) {
+				// Force reflow to restart animation
+				element.classList.remove('animate-fade-in-up');
+				void element.offsetWidth; // Force reflow
+				element.classList.add('animate-fade-in-up');
+			}
+		}, 0);
 	}
 
 	/**
@@ -205,6 +218,13 @@ export class MovieCardComponent {
 	 */
 	onCardClick() {
 		this.router.navigate(['/movies', this.movie.imdbID]);
+	}
+
+	/**
+	 * Format rating to 1 decimal place
+	 */
+	formatRating(rating: number): string {
+		return this.decimalPipe.transform(rating, '1.0-1') || rating.toFixed(1);
 	}
 
 	/**

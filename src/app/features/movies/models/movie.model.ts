@@ -10,6 +10,7 @@ export interface OmdbMovie {
 	imdbID: string;
 	Type: 'movie' | 'series' | 'episode';
 	Poster: string; // URL or 'N/A'
+	voteAverage?: number; // TMDb rating (0-10 scale)
 }
 
 /** OMDb search response */

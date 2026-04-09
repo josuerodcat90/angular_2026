@@ -1,3 +1,79 @@
+@use 'tailwindcss';
+@use '@phosphor-icons/web/regular';
+@use '@phosphor-icons/web/fill';
+
+/* Tailwind v4 Dark Mode - class strategy */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Smooth theme transition - applies to all elements */
+html {
+	transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	min-height: 100vh;
+	overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+	transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Custom Scrollbar Styles */
+:root {
+	--scrollbar-track: #f1f1f1;
+	--scrollbar-thumb: #c1c1c1;
+	--scrollbar-thumb-hover: #a1a1a1;
+}
+
+html.dark,
+html[data-theme='dark'] {
+	--scrollbar-track: #2d2d2d;
+	--scrollbar-thumb: #4a4a4a;
+	--scrollbar-thumb-hover: #6a6a6a;
+}
+
+/* Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--scrollbar-track);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--scrollbar-thumb);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--scrollbar-thumb-hover);
+}
+
+/* Firefox */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Hide scrollbar but keep functionality for slider */
+.overflow-x-auto {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+	display: none;
+}
+
 /* Global Styles */
 
 /* ==================== */

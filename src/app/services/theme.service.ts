@@ -81,7 +81,11 @@ export class ThemeService {
 		}
 
 		const root = document.documentElement;
+
+		// Set data-theme attribute (used by our CSS variables)
 		root.setAttribute('data-theme', theme);
+
+		// Remove old classes and add new one (for Tailwind's dark mode)
 		root.classList.remove('light', 'dark');
 		root.classList.add(theme);
 	}

@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../services/theme.service';
 
@@ -10,60 +10,43 @@ import { ThemeService } from '../services/theme.service';
 @Component({
 	selector: 'app-header',
 	standalone: true,
-	imports: [CommonModule, RouterLink],
+	imports: [CommonModule, RouterLink, RouterLinkActive],
 	template: `
-		<header class="app-header">
-			<div class="header-content">
+		<header class="sticky top-0 z-100 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 py-4 shadow-md">
+			<div class="max-w-[1400px] mx-auto px-8 flex items-center justify-between gap-8">
 				<!-- Logo / Brand -->
-				<div class="brand">
-					<a [routerLink]="['/']" class="brand-link">
-						<h1 class="brand-title">🎬 Movie DB</h1>
+				<div class="flex-shrink-0 animate-slide-down">
+					<a [routerLink]="['/']" class="no-underline">
+						<h1 class="text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors m-0 flex items-center gap-2">
+							<i class="ph ph-video text-2xl text-blue-600 dark:text-blue-400"></i> Movie DB
+						</h1>
 					</a>
 				</div>
 
 				<!-- Navigation -->
-				<nav class="nav-menu">
-					<a [routerLink]="['/', 'movies']" class="nav-link">Movies</a>
-					<a [routerLink]="['/', 'favorites']" class="nav-link">Favorites</a>
+				<nav class="flex gap-8 items-center flex-1">
+					<a [routerLink]="['/', 'movies']" 
+						routerLinkActive="active"
+						class="nav-link"
+					>Movies</a>
+					<a [routerLink]="['/', 'favorites']" 
+						routerLinkActive="active"
+						class="nav-link"
+					>Favorites</a>
 				</nav>
 
 				<!-- Theme Toggle -->
 				<button
 					(click)="toggleTheme()"
-					class="theme-toggle"
+					class="w-11 h-11 rounded-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-xl cursor-pointer flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-105 active:scale-95 flex-shrink-0 animate-slide-down"
 					[title]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
 				>
-					<span class="icon">{{ isDark() ? '☀️' : '🌙' }}</span>
+					<i class="ph text-xl" [class.ph-sun]="isDark()" [class.ph-moon]="!isDark()" [class.text-yellow-500]="isDark()" [class.text-gray-600]="!isDark()"></i>
 				</button>
 			</div>
 		</header>
 	`,
 	styles: `
-		.app-header {
-			background: var(--color-bg-secondary);
-			border-bottom: 1px solid var(--color-border);
-			padding: 1rem 0;
-			position: sticky;
-			top: 0;
-			z-index: 100;
-			box-shadow: 0 2px 4px var(--color-shadow);
-		}
-
-		.header-content {
-			max-width: 1400px;
-			margin: 0 auto;
-			padding: 0 2rem;
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			gap: 2rem;
-		}
-
-		.brand {
-			flex-shrink: 0;
-			animation: slideDown 0.5s ease-out;
-		}
-
 		@keyframes slideDown {
 			from {
 				opacity: 0;
@@ -74,102 +57,36 @@ import { ThemeService } from '../services/theme.service';
 				transform: translateY(0);
 			}
 		}
-
-		.brand-link {
-			text-decoration: none;
+		.animate-slide-down {
+			animation: slideDown 0.5s ease-out;
 		}
-
-		.brand-title {
-			margin: 0;
-			font-size: 1.5rem;
-			font-weight: 700;
-			color: var(--color-text-primary);
-		}
-
-		.brand-link:hover .brand-title {
-			color: var(--color-accent);
-		}
-
-		.nav-menu {
-			display: flex;
-			gap: 2rem;
-			align-items: center;
-			flex: 1;
-		}
-
 		.nav-link {
 			color: var(--color-text-secondary);
 			text-decoration: none;
 			font-weight: 500;
 			transition: color 0.2s ease;
 			cursor: pointer;
-
-			&:hover {
-				color: var(--color-accent);
-			}
-
-			&.active {
-				color: var(--color-accent);
-				border-bottom: 2px solid var(--color-accent);
-				padding-bottom: 0.25rem;
-			}
 		}
-
-		.theme-toggle {
-			background: var(--color-bg-primary);
-			border: 1px solid var(--color-border);
-			border-radius: 50%;
-			width: 44px;
-			height: 44px;
-			font-size: 1.25rem;
-			cursor: pointer;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			transition: all 0.2s ease;
-			flex-shrink: 0;
-			animation: slideDown 0.5s ease-out 0.3s both;
-
-			&:hover {
-				background: var(--color-bg-tertiary);
-				transform: scale(1.05);
-			}
-
-			&:active {
-				transform: scale(0.95);
-			}
+		.nav-link:hover,
+		.nav-link.active {
+			color: var(--color-accent);
 		}
-
-		.icon {
-			display: inline-block;
-			animation: rotate 0.3s ease-out;
+		.nav-link.active {
+			border-bottom: 2px solid var(--color-accent);
+			padding-bottom: 0.25rem;
 		}
-
-		@keyframes rotate {
-			from {
-				transform: rotate(-180deg);
-				opacity: 0;
-			}
-			to {
-				transform: rotate(0deg);
-				opacity: 1;
-			}
-		}
-
-		/* Responsive */
 		@media (max-width: 768px) {
-			.header-content {
-				padding: 0 1rem;
-				gap: 1rem;
+			:host ::ng-deep .max-w-\\[1400px\\] {
+				padding-left: 1rem !important;
+				padding-right: 1rem !important;
+				gap: 1rem !important;
 			}
-
-			.brand-title {
-				font-size: 1.2rem;
+			:host ::ng-deep .text-2xl {
+				font-size: 1.2rem !important;
 			}
-
-			.nav-menu {
-				gap: 1rem;
-				font-size: 0.9rem;
+			:host ::ng-deep .flex-gap-8 {
+				gap: 1rem !important;
+				font-size: 0.9rem !important;
 			}
 		}
 	`,
