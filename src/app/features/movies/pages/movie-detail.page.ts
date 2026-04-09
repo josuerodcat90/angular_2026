@@ -202,6 +202,9 @@ import { FavoritesService } from '../services/favorites.service';
 				<!-- Image Modal -->
 				@if (showImageModal()) {
 					<div 
+						role="dialog"
+						aria-modal="true"
+						aria-label="Image gallery"
 						class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
 						[class.animate-fade-in]="!isClosing()"
 						[class.animate-fade-out]="isClosing()"
@@ -211,20 +214,22 @@ import { FavoritesService } from '../services/favorites.service';
 						<!-- Close button -->
 						<button
 							(click)="closeImageModal()"
+							aria-label="Close gallery"
 							title="Close"
 							class="fixed top-24 right-4 flex items-center justify-center p-3 bg-gray-900/50 hover:bg-gray-900/80 text-white rounded-full shadow-lg transition-colors cursor-pointer"
 						>
-							<i class="ph ph-x text-2xl"></i>
+							<i class="ph ph-x text-2xl" aria-hidden="true"></i>
 						</button>
 
 						<!-- Previous button -->
 						<button
 							(click)="prevImage(); $event.stopPropagation()"
 							[disabled]="currentImageIndex() === 0"
+							aria-label="Previous image"
 							title="Previous image"
 							class="absolute left-4 z-10 flex items-center justify-center p-3 bg-gray-900/50 hover:bg-gray-900/80 text-white rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed animate-slide-in-left cursor-pointer"
 						>
-							<i class="ph ph-caret-left text-2xl"></i>
+							<i class="ph ph-caret-left text-2xl" aria-hidden="true"></i>
 						</button>
 
 						<!-- Image -->
@@ -242,14 +247,15 @@ import { FavoritesService } from '../services/favorites.service';
 						<button
 							(click)="nextImage(); $event.stopPropagation()"
 							[disabled]="currentImageIndex() === backdrops().length - 1"
+							aria-label="Next image"
 							title="Next image"
 							class="absolute right-4 z-10 flex items-center justify-center p-3 bg-gray-900/50 hover:bg-gray-900/80 text-white rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed animate-slide-in-right cursor-pointer"
 						>
-							<i class="ph ph-caret-right text-2xl"></i>
+							<i class="ph ph-caret-right text-2xl" aria-hidden="true"></i>
 						</button>
 
 						<!-- Counter -->
-						<div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/50 px-4 py-2 rounded-full text-white text-sm animate-fade-in-up">
+						<div aria-live="polite" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/50 px-4 py-2 rounded-full text-white text-sm animate-fade-in-up">
 							{{ currentImageIndex() + 1 }} / {{ backdrops().length }}
 						</div>
 					</div>

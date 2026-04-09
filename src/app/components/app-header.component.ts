@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../services/theme.service';
 
@@ -24,13 +24,15 @@ import { ThemeService } from '../services/theme.service';
 				</div>
 
 				<!-- Navigation -->
-				<nav class="flex gap-8 items-center flex-1">
+				<nav aria-label="Main navigation" class="flex gap-8 items-center flex-1">
 					<a [routerLink]="['/', 'movies']" 
 						routerLinkActive="active"
+						[attr.aria-current]="isActive(['/', 'movies']) ? 'page' : null"
 						class="nav-link"
 					>Movies</a>
 					<a [routerLink]="['/', 'favorites']" 
 						routerLinkActive="active"
+						[attr.aria-current]="isActive(['/', 'favorites']) ? 'page' : null"
 						class="nav-link"
 					>Favorites</a>
 				</nav>
@@ -38,10 +40,11 @@ import { ThemeService } from '../services/theme.service';
 				<!-- Theme Toggle -->
 				<button
 					(click)="toggleTheme()"
+					[attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
 					class="w-11 h-11 rounded-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-xl cursor-pointer flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-105 active:scale-95 flex-shrink-0 animate-slide-down"
 					[title]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
 				>
-					<i class="ph text-xl" [class.ph-sun]="isDark()" [class.ph-moon]="!isDark()" [class.text-yellow-500]="isDark()" [class.text-gray-600]="!isDark()"></i>
+					<i class="ph text-xl" [class.ph-sun]="isDark()" [class.ph-moon]="!isDark()" [class.text-yellow-500]="isDark()" [class.text-gray-600]="!isDark()" aria-hidden="true"></i>
 				</button>
 			</div>
 		</header>
@@ -93,6 +96,7 @@ import { ThemeService } from '../services/theme.service';
 })
 export class AppHeaderComponent {
 	private readonly themeService = inject(ThemeService);
+	private readonly router = inject(Router);
 
 	toggleTheme(): void {
 		this.themeService.toggleTheme();
@@ -100,5 +104,14 @@ export class AppHeaderComponent {
 
 	isDark(): boolean {
 		return this.themeService.isDark();
+	}
+
+	isActive(path: string[]): boolean {
+		return this.router.isActive(path[0], {
+			paths: 'exact',
+			queryParams: 'ignored',
+			fragment: 'ignored',
+			matrixParams: 'ignored',
+		});
 	}
 }
