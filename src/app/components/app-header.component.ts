@@ -17,8 +17,8 @@ import { ThemeService } from '../services/theme.service';
 				<!-- Logo / Brand -->
 				<div class="flex-shrink-0 animate-slide-down">
 					<a [routerLink]="['/']" class="no-underline">
-						<h1 class="text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors m-0 flex items-center gap-2">
-							<i class="ph ph-video text-2xl text-blue-600 dark:text-blue-400"></i> Movie DB
+						<h1 class="text-3xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors m-0">
+							🎬
 						</h1>
 					</a>
 				</div>
