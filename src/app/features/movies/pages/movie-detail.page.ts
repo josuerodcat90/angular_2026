@@ -207,10 +207,10 @@ import { FavoritesService } from '../services/favorites.service';
 						role="dialog"
 						aria-modal="true"
 						aria-label="Image gallery"
-						class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+						class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm image-modal-container"
 						[class.animate-fade-in]="!isClosing()"
 						[class.animate-fade-out]="isClosing()"
-						tabindex="0"
+						tabindex="-1"
 						(click)="closeImageModal()"
 					>
 						<!-- Close button -->
@@ -407,10 +407,15 @@ export class MovieDetailPage implements OnInit {
 		if (this.showImageModal()) {
 			if (event.key === 'ArrowLeft') {
 				this.prevImage();
+				event.preventDefault();
 			} else if (event.key === 'ArrowRight') {
 				this.nextImage();
+				event.preventDefault();
 			} else if (event.key === 'Escape') {
 				this.closeImageModal();
+			} else if (event.key === 'Tab') {
+				// Focus trap: prevent Tab from leaving modal
+				event.preventDefault();
 			}
 		}
 	}
@@ -460,6 +465,14 @@ export class MovieDetailPage implements OnInit {
 		this.isClosing.set(false);
 		this.imageKey.set(0); // Reset animation
 		this.showImageModal.set(true);
+
+		// Focus the modal container for keyboard navigation
+		setTimeout(() => {
+			const modal = document.querySelector('.image-modal-container') as HTMLElement;
+			if (modal) {
+				modal.focus();
+			}
+		}, 100);
 	}
 
 	// Close image modal with animation

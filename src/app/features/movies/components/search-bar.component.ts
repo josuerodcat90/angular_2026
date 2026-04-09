@@ -49,6 +49,7 @@ import { CommonModule } from '@angular/common';
 						placeholder="e.g., Inception, Avatar..."
 						class="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-md text-base font-inherit bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 						aria-label="Movie title search"
+						aria-describedby="title-error"
 					/>
 					@if (hasInput()) {
 						<button
@@ -63,7 +64,7 @@ import { CommonModule } from '@angular/common';
 					}
 				</div>
 				@if (titleControl.invalid && titleControl.touched) {
-					<span class="text-red-500 text-xs mt-1">Enter a movie title (at least 1 character)</span>
+					<span id="title-error" class="text-red-500 text-xs mt-1" role="alert">Enter a movie title (at least 1 character)</span>
 				}
 			</div>
 		</form>
