@@ -25,9 +25,9 @@ import type { Movie } from '../models';
 	template: `
 		<div class="w-full my-8">
 			@if (movies().length === 0) {
-				<p class="text-center text-gray-500 dark:text-gray-400 text-lg p-8">No movies found. Try searching for a title.</p>
+				<p role="status" aria-live="polite" class="text-center text-gray-500 dark:text-gray-400 text-lg p-8">No movies found. Try searching for a title.</p>
 			} @else {
-				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 px-5">
+				<div role="region" aria-label="Movie results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 px-5">
 					@for (movie of movies(); track movie.imdbID; let i = $index) {
 						@if (true) {
 							<app-movie-card

@@ -43,12 +43,14 @@ import type { OmdbMovie } from '../models';
 					(click)="scroll('left')"
 					aria-label="Scroll left"
 				>
-					<i class="ph ph-caret-left"></i>
+					<i class="ph ph-caret-left" aria-hidden="true"></i>
 				</button>
 			}
 
 			<!-- Slider Track -->
 			<div 
+				role="region"
+				aria-label="Movie carousel"
 				class="flex gap-4 overflow-x-auto scroll-smooth snap-x py-2 px-6"
 				#sliderTrack
 				(scroll)="onScroll()"
@@ -94,7 +96,7 @@ import type { OmdbMovie } from '../models';
 					(click)="scroll('right')"
 					aria-label="Scroll right"
 				>
-					<i class="ph ph-caret-right"></i>
+					<i class="ph ph-caret-right" aria-hidden="true"></i>
 				</button>
 			}
 		</div>
