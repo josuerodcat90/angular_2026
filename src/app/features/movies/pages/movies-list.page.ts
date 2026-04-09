@@ -44,7 +44,7 @@ import type { Movie } from '../models';
 
 			<!-- Top Rated Slider (only show if we have movies) -->
 			@if (apiService.trendingMovies().length > 0 || apiService.isLoading()) {
-				<section class="mb-8">
+				<aside aria-label="Top rated movies carousel" class="mb-8">
 					<div class="flex items-center justify-between mb-4 flex-wrap gap-4">
 						<h2 class="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
 							<i class="ph ph-medal text-3xl text-amber-500 dark:text-amber-400" aria-hidden="true"></i> Top Rated
@@ -62,7 +62,7 @@ import type { Movie } from '../models';
 						</select>
 					</div>
 					<app-movie-slider [movies]="apiService.trendingMovies" />
-				</section>
+				</aside>
 			}
 
 			<app-search-bar
