@@ -68,10 +68,10 @@
 					"builder": "@angular/build:dev-server",
 					"configurations": {
 						"production": {
-							"buildTarget": "CursoBigoteAngular:build:production"
+							"buildTarget": "movie-search:build:production"
 						},
 						"development": {
-							"buildTarget": "CursoBigoteAngular:build:development"
+							"buildTarget": "movie-search:build:development"
 						}
 					},
 					"defaultConfiguration": "development"
