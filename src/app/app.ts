@@ -10,7 +10,7 @@ import { ThemeService } from './services/theme.service';
 	styleUrl: './app.scss',
 })
 export class App {
-	protected readonly title = signal('CursoBigoteAngular');
+	protected readonly title = signal('Movie Search');
 
 	// Inject theme service to apply theme on app init
 	// The service loads saved theme and applies it via effect

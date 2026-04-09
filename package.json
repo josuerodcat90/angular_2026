@@ -1,6 +1,6 @@
 {
-	"name": "curso-bigote-angular",
-	"version": "0.0.0",
+	"name": "movie-search",
+	"version": "1.0.0",
 	"scripts": {
 		"ng": "ng",
 		"start": "ng serve",
@@ -8,7 +8,7 @@
 		"format": "bun run biome format ./src --fix",
 		"watch": "ng build --watch --configuration development",
 		"test": "ng test",
-		"serve:ssr:CursoBigoteAngular": "node dist/CursoBigoteAngular/server/server.mjs"
+		"serve:ssr:movie-search": "node dist/movie-search/server/server.mjs"
 	},
 	"prettier": {
 		"printWidth": 100,

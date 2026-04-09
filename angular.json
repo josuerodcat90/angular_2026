@@ -6,7 +6,7 @@
 	},
 	"newProjectRoot": "projects",
 	"projects": {
-		"CursoBigoteAngular": {
+		"movie-search": {
 			"projectType": "application",
 			"schematics": {
 				"@schematics/angular:component": {
