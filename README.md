@@ -1,4 +1,4 @@
-# 🎬 Movie DB - Angular Dashboard
+# 🎬 Movie Search - Angular Dashboard
 
 A modern movie search and discovery dashboard built with Angular 21, featuring a sleek UI with Tailwind CSS, interactive image modals, and a premium look & feel.
 
