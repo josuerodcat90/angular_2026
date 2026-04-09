@@ -37,7 +37,7 @@ import { CommonModule } from '@angular/common';
 	imports: [CommonModule, ReactiveFormsModule],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
-		<form [formGroup]="searchForm" class="flex flex-wrap gap-4 p-6 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 transition-colors duration-300">
+		<form [formGroup]="searchForm" class="flex flex-wrap gap-4 p-6 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 transition-colors duration-150">
 			<div class="flex flex-col gap-1 flex-1 min-w-[200px]">
 				<label for="title-input" class="text-sm font-medium text-gray-700 dark:text-gray-300">Search movies:</label>
 				<div class="relative">

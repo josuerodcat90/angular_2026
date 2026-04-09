@@ -34,7 +34,7 @@ import type { Movie } from '../models';
 	imports: [CommonModule, SearchBarComponent, MovieGridComponent, MovieSliderComponent],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
-		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-300 flex flex-col flex-grow rounded-b-xl">
+		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl">
 			<header class="text-center mb-8">
 					<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-2">
 						<i class="ph ph-video text-4xl text-blue-600 dark:text-blue-400"></i> Movie Search

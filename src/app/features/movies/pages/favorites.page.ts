@@ -22,7 +22,7 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 	imports: [CommonModule, MovieGridComponent],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
-		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-300 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
+		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
 			<header class="text-center mb-6">
 				<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-2">
 					<i class="ph ph-heart text-4xl text-red-500 dark:text-red-400"></i> My Favorites

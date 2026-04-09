@@ -22,7 +22,7 @@ import { FavoritesService } from '../services/favorites.service';
 	standalone: true,
 	imports: [CommonModule, RouterLink],
 	template: `
-		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-300 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
+		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
 			<!-- Header -->
 			<div class="flex items-center gap-4 mb-6">
 				<button 
