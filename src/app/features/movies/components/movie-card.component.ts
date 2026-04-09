@@ -61,10 +61,10 @@ import type { Movie } from '../models';
 					<h3 class="text-base font-semibold leading-tight text-gray-900 dark:text-white line-clamp-2">{{ movie.Title }}</h3>
 					<div class="flex items-center justify-between mt-auto">
 						<span class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-							<i class="ph ph-calendar-blank text-xs mr-1"></i>{{ movie.Year }}
+							<i class="ph ph-calendar-blank text-xs mr-1" aria-hidden="true"></i>{{ movie.Year }}
 						</span>
 						<span class="text-xs font-medium flex items-center" [class.text-yellow-600]="movie.voteAverage" [class.dark:text-yellow-400]="movie.voteAverage" [class.text-gray-400]="!movie.voteAverage">
-							<i class="ph ph-star text-[10px] mr-1"></i>{{ movie.voteAverage ? formatRating(movie.voteAverage) + '/10' : 'N/A' }}
+							<i class="ph ph-star text-[10px] mr-1" aria-hidden="true"></i>{{ movie.voteAverage ? formatRating(movie.voteAverage) + '/10' : 'N/A' }}
 						</span>
 					</div>
 				</div>

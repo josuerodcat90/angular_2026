@@ -41,7 +41,7 @@ import { CommonModule } from '@angular/common';
 			<div class="flex flex-col gap-1 flex-1 min-w-[200px]">
 				<label for="title-input" class="text-sm font-medium text-gray-700 dark:text-gray-300">Search movies:</label>
 				<div class="relative">
-					<i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"></i>
+					<i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" aria-hidden="true"></i>
 					<input
 						id="title-input"
 						type="text"
@@ -56,9 +56,9 @@ import { CommonModule } from '@angular/common';
 							(click)="onClear()"
 							class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-[6px] cursor-pointer transition-colors"
 							aria-label="Clear search"
-							title="Clean search"
+							title="Clear search"
 						>
-							<i class="ph ph-x text-base"></i>
+							<i class="ph ph-x text-base" aria-hidden="true"></i>
 						</button>
 					}
 				</div>

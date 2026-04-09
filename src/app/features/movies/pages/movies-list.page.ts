@@ -37,7 +37,7 @@ import type { Movie } from '../models';
 		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl">
 			<header class="text-center mb-8">
 					<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-2">
-						<i class="ph ph-video text-4xl text-blue-600 dark:text-blue-400"></i> Movie Search
+						<i class="ph ph-video text-4xl text-blue-600 dark:text-blue-400" aria-hidden="true"></i> Movie Search
 					</h1>
 				<p class="text-gray-600 dark:text-gray-300 text-lg">Find your favorite movies, build a collection of favorites</p>
 			</header>
@@ -47,7 +47,7 @@ import type { Movie } from '../models';
 				<section class="mb-8">
 					<div class="flex items-center justify-between mb-4 flex-wrap gap-4">
 						<h2 class="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-							<i class="ph ph-medal text-3xl text-amber-500 dark:text-amber-400"></i> Top Rated
+							<i class="ph ph-medal text-3xl text-amber-500 dark:text-amber-400" aria-hidden="true"></i> Top Rated
 						</h2>
 						<!-- Year Selector -->
 						<select 
@@ -93,9 +93,9 @@ import type { Movie } from '../models';
 
 			<!-- Loading State -->
 			@if (apiService.isLoading()) {
-				<div class="text-center p-8 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md my-4">
+				<div role="status" aria-live="polite" class="text-center p-8 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md my-4">
 					<p class="text-blue-600 dark:text-blue-400 text-lg">
-						<i class="ph ph-spinner animate-spin text-xl align-middle"></i> Searching for movies...
+						<i class="ph ph-spinner animate-spin text-xl align-middle" aria-hidden="true"></i> Searching for movies...
 					</p>
 				</div>
 			}
@@ -105,7 +105,7 @@ import type { Movie } from '../models';
 				<div class="bg-red-50 dark:bg-red-900/20 border border-red-500 text-red-700 dark:text-red-400 p-4 rounded-lg shadow-md my-4">
 					<p class="mb-4">{{ apiService.error() }}</p>
 					<button (click)="onRetry()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-						<i class="ph ph-arrow-clockwise mr-2"></i>Try Again
+						<i class="ph ph-arrow-clockwise mr-2" aria-hidden="true"></i>Try Again
 					</button>
 				</div>
 			}
@@ -121,7 +121,7 @@ import type { Movie } from '../models';
 
 			<!-- Favorites Badge -->
 			<div class="text-center p-4 text-gray-600 dark:text-gray-400 text-sm mt-8">
-				<i class="ph ph-heart text-lg align-middle text-red-500"></i> {{ favService.favoriteCount() }} favorite(s)
+				<i class="ph ph-heart text-lg align-middle text-red-500" aria-hidden="true"></i> {{ favService.favoriteCount() }} favorite(s)
 			</div>
 		</div>
 	`,

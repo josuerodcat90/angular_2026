@@ -65,8 +65,8 @@ import type { OmdbMovie } from '../models';
 								@if (movie.Poster && movie.Poster !== 'N/A') {
 									<img [src]="movie.Poster" [alt]="movie.Title" loading="lazy" class="w-full h-full object-cover" />
 								} @else {
-									<div class="w-full h-full flex items-center justify-center text-4xl bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
-										<i class="ph ph-video"></i>
+									<div class="w-full h-full flex items-center justify-center text-4xl bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400" aria-label="No poster available">
+										<i class="ph ph-video" aria-hidden="true"></i>
 									</div>
 								}
 								<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-12 opacity-0 hover:opacity-100 transition-opacity">
@@ -79,7 +79,7 @@ import type { OmdbMovie } from '../models';
 									<span class="text-xs text-gray-600 dark:text-gray-400">{{ movie.Year }}</span>
 									@if (movie.voteAverage) {
 										<span class="text-xs font-medium text-yellow-600 dark:text-yellow-400">
-											<i class="ph ph-star text-[10px]"></i> {{ formatRating(movie.voteAverage) }}/10
+											<i class="ph ph-star text-[10px]" aria-hidden="true"></i> {{ formatRating(movie.voteAverage) }}/10
 										</span>
 									}
 								</div>

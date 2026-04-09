@@ -29,16 +29,16 @@ import { FavoritesService } from '../services/favorites.service';
 					[routerLink]="['/movies']" 
 					class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors cursor-pointer"
 				>
-					<i class="ph ph-arrow-left"></i> Back
+					<i class="ph ph-arrow-left" aria-hidden="true"></i> Back
 				</button>
 				<h1 class="text-2xl font-bold text-gray-900 dark:text-white flex-1 text-center">Movie Details</h1>
 				<div class="w-20"></div>
 			</div>
 
-			<!-- Loading state -->
+						<!-- Loading state -->
 			@if (apiService.isLoading()) {
-				<div class="flex flex-col items-center justify-center p-12 bg-gray-200 dark:bg-gray-800 rounded-xl">
-					<i class="ph ph-spinner animate-spin text-5xl text-blue-600 dark:text-blue-400 mb-4"></i>
+				<div role="status" aria-live="polite" class="flex flex-col items-center justify-center p-12 bg-gray-200 dark:bg-gray-800 rounded-xl">
+					<i class="ph ph-spinner animate-spin text-5xl text-blue-600 dark:text-blue-400 mb-4" aria-hidden="true"></i>
 					<p class="text-gray-600 dark:text-gray-400 text-lg">Loading details...</p>
 				</div>
 			}
@@ -93,7 +93,7 @@ import { FavoritesService } from '../services/favorites.service';
 							<div class="flex flex-wrap gap-2">
 								@if (movie()!.Year) {
 									<span class="flex items-center gap-1 px-3 py-1.5 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-full text-sm text-gray-800 dark:text-gray-200">
-										<i class="ph ph-calendar-blank"></i>{{ movie()!.Year }}
+										<i class="ph ph-calendar-blank" aria-hidden="true"></i>{{ movie()!.Year }}
 									</span>
 								}
 								@if (movie()!.Type) {
@@ -103,7 +103,7 @@ import { FavoritesService } from '../services/favorites.service';
 								}
 								@if (movie()!.Runtime && movie()!.Runtime !== 'N/A') {
 									<span class="flex items-center gap-1 px-3 py-1.5 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-full text-sm text-gray-800 dark:text-gray-200">
-										<i class="ph ph-clock"></i>{{ movie()!.Runtime }}
+										<i class="ph ph-clock" aria-hidden="true"></i>{{ movie()!.Runtime }}
 									</span>
 								}
 								@if (movie()!.Rated && movie()!.Rated !== 'N/A') {
@@ -119,7 +119,7 @@ import { FavoritesService } from '../services/favorites.service';
 								@if (movie()!.Plot && movie()!.Plot !== 'N/A') {
 									<div class="bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 border-l-4 border-blue-500">
 										<div class="flex items-center gap-2 mb-2">
-											<i class="ph ph-book-open text-xl text-blue-600 dark:text-blue-400"></i>
+											<i class="ph ph-book-open text-xl text-blue-600 dark:text-blue-400" aria-hidden="true"></i>
 											<span class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">Plot</span>
 										</div>
 										<p class="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{{ movie()!.Plot }}</p>
@@ -131,6 +131,7 @@ import { FavoritesService } from '../services/favorites.service';
 									(click)="toggleFavorite()"
 									(mouseenter)="onHover(true)"
 									(mouseleave)="onHover(false)"
+									[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
 									class="group relative flex items-center justify-center gap-2 px-6 py-3 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm text-white rounded-lg font-medium transition-colors cursor-pointer"
 									[class.bg-pink-500]="isFavorite()"
 									[class.dark:bg-pink-600]="isFavorite()"
@@ -141,7 +142,8 @@ import { FavoritesService } from '../services/favorites.service';
 								>
 									<!-- Icono: ph-heart si no es favorito, ph-fill ph-heart si lo es, ph-fill ph-heart-break en hover cuando es favorito -->
 									<i class="text-xl" 
-										[class]="!isFavorite() ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')">
+										[class]="!isFavorite() ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')"
+										aria-hidden="true">
 									</i>
 									<span class="group-hover:hidden">{{ isFavorite() ? 'Favorited' : 'Add to Favorites' }}</span>
 									<span class="hidden group-hover:inline">{{ isFavorite() ? 'Remove' : 'Add to Favorites' }}</span>
@@ -155,7 +157,7 @@ import { FavoritesService } from '../services/favorites.service';
 				@if (movie()!.Genre) {
 					<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 						<div class="flex items-center gap-2 mb-4">
-							<i class="ph ph-tag text-2xl text-green-600 dark:text-green-400"></i>
+							<i class="ph ph-tag text-2xl text-green-600 dark:text-green-400" aria-hidden="true"></i>
 							<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Genres</h3>
 						</div>
 						<div class="flex flex-wrap gap-2">
@@ -173,11 +175,11 @@ import { FavoritesService } from '../services/favorites.service';
 					<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 						<div class="flex items-center justify-between mb-4">
 							<div class="flex items-center gap-2">
-								<i class="ph ph-images text-2xl text-purple-600 dark:text-purple-400"></i>
+								<i class="ph ph-images text-2xl text-purple-600 dark:text-purple-400" aria-hidden="true"></i>
 								<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Scenes</h3>
 							</div>
 							@if (backdrops().length > 8) {
-								<span class="px-3 py-1 bg-purple-500/80 text-white rounded-full text-sm font-medium backdrop-blur-sm">
+								<span class="px-3 py-1 bg-purple-500/80 text-white rounded-full text-sm font-medium backdrop-blur-sm" aria-label="{{ backdrops().length - 8 }} additional images">
 									+{{ backdrops().length - 8 }}
 								</span>
 							} @else if (backdrops().length > 0) {
@@ -264,7 +266,7 @@ import { FavoritesService } from '../services/favorites.service';
 				<!-- Ratings -->
 				<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 					<div class="flex items-center gap-2 mb-4">
-						<i class="ph ph-star text-2xl text-yellow-500 dark:text-yellow-400"></i>
+						<i class="ph ph-star text-2xl text-yellow-500 dark:text-yellow-400" aria-hidden="true"></i>
 						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Ratings</h3>
 					</div>
 					@if (movie()!.voteAverage) {
@@ -286,7 +288,7 @@ import { FavoritesService } from '../services/favorites.service';
 				<!-- Crew -->
 				<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 					<div class="flex items-center gap-2 mb-4">
-						<i class="ph ph-users text-2xl text-pink-600 dark:text-pink-400"></i>
+						<i class="ph ph-users text-2xl text-pink-600 dark:text-pink-400" aria-hidden="true"></i>
 						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Crew</h3>
 					</div>
 					<div class="grid gap-4">
@@ -317,7 +319,7 @@ import { FavoritesService } from '../services/favorites.service';
 				<!-- Additional Info -->
 				<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 					<div class="flex items-center gap-2 mb-4">
-						<i class="ph ph-info text-2xl text-indigo-600 dark:text-indigo-400"></i>
+						<i class="ph ph-info text-2xl text-indigo-600 dark:text-indigo-400" aria-hidden="true"></i>
 						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Additional Info</h3>
 					</div>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -340,13 +342,13 @@ import { FavoritesService } from '../services/favorites.service';
 			<!-- No movie found -->
 			@if (!movie() && !apiService.isLoading() && !apiService.error()) {
 				<div class="flex flex-col items-center justify-center p-12 bg-gray-200 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-600">
-					<i class="ph ph-film-slate text-6xl text-gray-400 dark:text-gray-500 mb-4"></i>
+					<i class="ph ph-film-slate text-6xl text-gray-400 dark:text-gray-500 mb-4" aria-hidden="true"></i>
 					<p class="text-xl text-gray-700 dark:text-gray-300 mb-6">Movie not found</p>
 					<button 
 						[routerLink]="['/movies']" 
 						class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
 					>
-						<i class="ph ph-arrow-left mr-2"></i>Back to Search
+						<i class="ph ph-arrow-left mr-2" aria-hidden="true"></i>Back to Search
 					</button>
 				</div>
 			}

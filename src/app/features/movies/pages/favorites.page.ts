@@ -25,7 +25,7 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
 			<header class="text-center mb-6">
 				<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-2">
-					<i class="ph ph-heart text-4xl text-red-500 dark:text-red-400"></i> My Favorites
+					<i class="ph ph-heart text-4xl text-red-500 dark:text-red-400" aria-hidden="true"></i> My Favorites
 				</h1>
 				<p class="text-gray-600 dark:text-gray-300 text-lg">Your personal collection of favorite movies</p>
 			</header>
@@ -54,14 +54,14 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 			<!-- Empty State -->
 			@if (favService.favorites().length === 0) {
 				<div class="text-center p-8 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-md">
-					<i class="ph ph-film-slate text-7xl text-gray-400 dark:text-gray-500 mb-4 block"></i>
+					<i class="ph ph-film-slate text-7xl text-gray-400 dark:text-gray-500 mb-4 block" aria-hidden="true"></i>
 					<h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2">No favorites yet</h2>
 					<p class="text-gray-600 dark:text-gray-400 mb-6">Start adding movies to your favorites from the search page!</p>
 					<a 
 						href="/movies" 
 						class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all hover:-translate-y-1 hover:shadow-lg"
 					>
-						<i class="ph ph-magnifying-glass mr-2"></i>Search Movies
+						<i class="ph ph-magnifying-glass mr-2" aria-hidden="true"></i>Search Movies
 					</a>
 				</div>
 			}
@@ -75,7 +75,7 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 				/>
 
 				<div class="text-center p-4 text-gray-600 dark:text-gray-400 text-sm mt-8">
-					<i class="ph ph-heart text-lg align-middle text-red-500"></i> {{ favService.favorites().length }} movie(s) in your collection
+					<i class="ph ph-heart text-lg align-middle text-red-500" aria-hidden="true"></i> {{ favService.favorites().length }} movie(s) in your collection
 				</div>
 			}
 		</div>
