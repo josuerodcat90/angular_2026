@@ -30,9 +30,16 @@ bun run start
 
 ## 🔑 API Configuration
 
-Get your free TMDb API key at [themoviedb.org/settings/api](https://wwwoviedb.org/settings/api)
+1. Get your free TMDb API key at [themoviedb.org/settings/api](https://wwwoviedb.org/settings/api)
 
-Edit `src/environments/environment.ts` replace `YOUR_API_KEY_HERE` with your actual key.
+2. Open `.env.example` (it's a template showing the format)
+
+3. Paste your key in that format:
+```
+TMDB_API_KEY=your_actual_key_here
+```
+
+4. Copy the line into `src/environments/environment.ts`
 
 > **Note**: Never commit your actual API key to git.
 
