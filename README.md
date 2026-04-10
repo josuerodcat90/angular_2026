@@ -73,6 +73,7 @@ export const environment = {
 - **Image Modal**: Interactive modal with keyboard navigation (←, →, Esc), smooth fade transitions, and body scroll lock
 - **Favorites**: Save favorite movies with localStorage persistence
 - **Dark Mode**: Toggle between light and dark themes with system preference detection
+- **Theme Transitions**: Smooth polygon gradient animation when switching themes (View Transitions API)
 - **SSR Support**: Server-side rendering for better SEO and performance
 - **Responsive**: Fully responsive design for mobile, tablet, and desktop
 - **Phosphor Icons**: Premium icon set for a polished UI
@@ -88,6 +89,17 @@ export const environment = {
 - **Linting**: Biome
 - **Testing**: Vitest
 - **SSR**: Angular SSR with hydration
+
+## 📚 External Libraries
+
+| Library | Version | Description |
+|---------|---------|-------------|
+| [Phosphor Icons](https://phosphoricons.com/) | 2.1.2 | Premium icon family for polished UI |
+| [Tailwind CSS](https://tailwindcss.com/) | 4.2.2 | Utility-first CSS framework |
+| [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) | Native | Native browser API for smooth theme switch animations |
+| [TMDb API](https://www.themoviedb.org/) | v3 | The Movie Database for movie data |
+
+> **Note**: Most dependencies are Angular ecosystem packages. This project uses Angular Signals for state management—no external state management libraries (NgRx, RxJS, etc.) required.
 
 ## 📁 Project Structure
 
@@ -146,6 +158,13 @@ The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
 - Body scroll lock when open
 - Tooltips on all control buttons
 - Image counter display (e.g., "3 / 20")
+
+### Theme Toggle Animation
+- Uses the native [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API)
+- Polygon gradient effect that expands from top-left corner
+- Smooth 1.5s animation with custom easing
+- No flash between theme switches
+- Fallback for browsers without View Transitions support
 
 ## 🔍 Key Files
 
