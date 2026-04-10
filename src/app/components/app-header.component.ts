@@ -37,13 +37,13 @@ import { ThemeService } from '../services/theme.service';
 					>Favorites</a>
 				</nav>
 
-				<!-- Theme Toggle -->
-				<button
-					(click)="toggleTheme()"
-					[attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
-					class="w-11 h-11 rounded-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-xl cursor-pointer flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-105 active:scale-95 flex-shrink-0 animate-slide-down"
-					[title]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
-				>
+<!-- Theme Toggle -->
+			<button
+				(click)="toggleTheme($event)"
+				[attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+				class="w-11 h-11 rounded-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-xl cursor-pointer flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-105 active:scale-95 flex-shrink-0 animate-slide-down"
+				[title]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+			>
 					<i class="ph text-xl" [class.ph-sun]="isDark()" [class.ph-moon]="!isDark()" [class.text-yellow-500]="isDark()" [class.text-gray-600]="!isDark()" aria-hidden="true"></i>
 				</button>
 			</div>
@@ -98,8 +98,11 @@ export class AppHeaderComponent {
 	private readonly themeService = inject(ThemeService);
 	private readonly router = inject(Router);
 
-	toggleTheme(): void {
-		this.themeService.toggleTheme();
+	toggleTheme(event: MouseEvent): void {
+		const rect = (event.target as HTMLElement).getBoundingClientRect();
+		const x = rect.left + rect.width / 2;
+		const y = rect.top + rect.height / 2;
+		this.themeService.toggleTheme({ x, y });
 	}
 
 	isDark(): boolean {

@@ -40,14 +40,31 @@ export class ThemeService {
 
 	/**
 	 * Toggle between light and dark theme
+	 * @param clickPosition - Optional coordinates of click event for circle animation
 	 */
-	toggleTheme(): void {
+	toggleTheme(clickPosition?: { x: number; y: number }): void {
 		const current = this.themeSignal();
 		const next = current === 'light' ? 'dark' : 'light';
-		this.themeSignal.set(next);
 
-		if (this.isBrowser) {
-			localStorage.setItem('theme', next);
+		// Set click position for animation origin
+		if (this.isBrowser && clickPosition) {
+			document.documentElement.style.setProperty('--theme-toggle-x', `${clickPosition.x}px`);
+			document.documentElement.style.setProperty('--theme-toggle-y', `${clickPosition.y}px`);
+		}
+
+		// Use View Transitions API if available, otherwise just switch
+		if (this.isBrowser && document.startViewTransition) {
+			const transition = document.startViewTransition(() => {
+				this.themeSignal.set(next);
+				if (this.isBrowser) {
+					localStorage.setItem('theme', next);
+				}
+			});
+		} else {
+			this.themeSignal.set(next);
+			if (this.isBrowser) {
+				localStorage.setItem('theme', next);
+			}
 		}
 	}
 
