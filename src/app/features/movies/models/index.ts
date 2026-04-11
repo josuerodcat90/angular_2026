@@ -22,6 +22,9 @@ export interface OmdbMovie {
 
 	/** URL to movie poster image, or 'N/A' if unavailable */
 	Poster: string;
+
+	/** TMDb rating (0-10 scale) - added for slider display */
+	voteAverage?: number;
 }
 
 /**
@@ -75,6 +78,9 @@ export interface Movie extends OmdbMovie {
 
 	/** IMDb rating on 10-point scale (e.g., "8.8") */
 	imdbRating?: string;
+
+	/** TMDb rating for sorting in favorites */
+	voteAverage?: number;
 
 	/**
 	 * Dynamic properties for compatibility with API responses

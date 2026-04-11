@@ -27,8 +27,72 @@ export class MoviesApiService {
 	isLoading = signal(false);
 	error = signal<string | null>(null);
 
+	// Last search query (persists when returning to home)
+	lastSearchQuery = signal<string>('');
+
+	// Sort option for search results (default: oldest first)
+	sortOption = signal<string>('year-asc');
+
+	// Sorted search results computed
+	sortedSearchResults = computed(() => {
+		const movies = this.searchResults();
+		const sort = this.sortOption();
+
+		if (!movies.length || sort === 'none') {
+			return movies;
+		}
+
+		const sorted = [...movies];
+
+		switch (sort) {
+			case 'year-desc':
+				return sorted.sort((a, b) => {
+					const yearA = a.Year === 'N/A' ? 0 : parseInt(a.Year) || 0;
+					const yearB = b.Year === 'N/A' ? 0 : parseInt(b.Year) || 0;
+					return yearB - yearA;
+				});
+			case 'year-asc':
+				return sorted.sort((a, b) => {
+					const yearA = a.Year === 'N/A' ? 0 : parseInt(a.Year) || 0;
+					const yearB = b.Year === 'N/A' ? 0 : parseInt(b.Year) || 0;
+					return yearA - yearB;
+				});
+			case 'rating-desc':
+				return sorted.sort((a, b) => (b.voteAverage || 0) - (a.voteAverage || 0));
+			case 'rating-asc':
+				return sorted.sort((a, b) => (a.voteAverage || 0) - (b.voteAverage || 0));
+			case 'title-asc':
+				return sorted.sort((a, b) => a.Title.localeCompare(b.Title));
+			case 'title-desc':
+				return sorted.sort((a, b) => b.Title.localeCompare(a.Title));
+			default:
+				return movies;
+		}
+	});
+
 	// Trending/popular movies for home page
 	trendingMovies = signal<OmdbMovie[]>([]);
+
+	// Movie backdrops for detail page (scenes)
+	movieBackdrops = signal<any[]>([]);
+
+	// Selected year for top rated (default to current year)
+	selectedYear = signal(new Date().getFullYear());
+
+	// Reset selected year to current (call this when entering home page)
+	resetSelectedYear(): void {
+		this.selectedYear.set(new Date().getFullYear());
+	}
+
+	// Available years (current year + last 49 years = 50 years total)
+	availableYears = computed(() => {
+		const currentYear = new Date().getFullYear();
+		const years: number[] = [];
+		for (let year = currentYear; year >= currentYear - 49; year--) {
+			years.push(year);
+		}
+		return years;
+	});
 
 	// Computed: has next page?
 	hasMorePages = computed(() => {
@@ -40,6 +104,7 @@ export class MoviesApiService {
 	/**
 	 * Search movies by title
 	 * Updates signals: searchResults, totalResults, isLoading, error, currentPage
+	 * Stores last search query for persistence across route navigation
 	 */
 	search(query: string, page: number = 1): Observable<OmdbSearchResponse> {
 		// Early exit for empty query
@@ -47,6 +112,9 @@ export class MoviesApiService {
 			this.resetResults();
 			return of({ Search: [], totalResults: '0', Response: 'True' });
 		}
+
+		// Store the search query
+		this.lastSearchQuery.set(query.trim());
 
 		this.isLoading.set(true);
 		this.error.set(null);
@@ -69,6 +137,7 @@ export class MoviesApiService {
 							imdbID: `tmdb_${movie.id}`, // TMDb uses numeric IDs
 							Type: 'movie',
 							Poster: movie.poster_path ? `${this.IMAGE_BASE}${movie.poster_path}` : 'N/A',
+							voteAverage: movie.vote_average ? Math.round(movie.vote_average * 10) / 10 : undefined,
 						}));
 						this.searchResults.set(movies);
 						this.totalResults.set(response.total_results || 0);
@@ -192,23 +261,27 @@ export class MoviesApiService {
 	}
 
 	/**
-	 * Get top rated movies from last year
+	 * Clear last search query (called when user clears search)
+	 */
+	clearLastSearch(): void {
+		this.lastSearchQuery.set('');
+	}
+
+	/**
+	 * Get top rated movies from a specific year
 	 * Used for the home page slider
 	 */
-	getTopRatedFromLastYear(): Observable<any> {
-		const currentYear = new Date().getFullYear();
-		const lastYear = currentYear - 1;
-
+	getTopRatedFromYear(year: number): Observable<any> {
 		this.isLoading.set(true);
 
 		return this.http
 			.get<any>(`${this.BASE_URL}/discover/movie`, {
 				params: {
 					api_key: this.API_KEY,
-					sort_by: 'vote_average.desc',
-					'primary_release_date.gte': `${lastYear}-01-01`,
-					'primary_release_date.lte': `${lastYear}-12-31`,
-					'vote_count.gte': '100', // Minimum votes for quality
+					sort_by: 'vote_count.desc', // Sort by votes instead of rating for more reliable results
+					'primary_release_date.gte': `${year}-01-01`,
+					'primary_release_date.lte': `${year}-12-31`,
+					'vote_count.gte': '50', // Lower threshold for more results
 					include_adult: 'false',
 					page: '1',
 				},
@@ -216,15 +289,19 @@ export class MoviesApiService {
 			.pipe(
 				tap((response) => {
 					if (response.results && response.results.length > 0) {
-						// Take top 10
+						// Take top 10 sorted by popularity/votes
 						const movies: OmdbMovie[] = response.results.slice(0, 10).map((movie: any) => ({
 							Title: movie.title,
 							Year: movie.release_date?.split('-')[0] || 'N/A',
 							imdbID: `tmdb_${movie.id}`,
 							Type: 'movie',
 							Poster: movie.poster_path ? `${this.IMAGE_BASE}${movie.poster_path}` : 'N/A',
+							voteAverage: movie.vote_average ? Math.round(movie.vote_average * 10) / 10 : undefined,
 						}));
 						this.trendingMovies.set(movies);
+					} else {
+						// If no results for this year, set empty and don't crash
+						this.trendingMovies.set([]);
 					}
 				}),
 				catchError((err) => {
@@ -236,6 +313,14 @@ export class MoviesApiService {
 	}
 
 	/**
+	 * Get top rated movies from last year (backward compatibility)
+	 * Used for the home page slider
+	 */
+	getTopRatedFromLastYear(): Observable<any> {
+		return this.getTopRatedFromYear(new Date().getFullYear() - 1);
+	}
+
+	/**
 	 * Retry last search
 	 * Useful for re-attempting after network errors
 	 */
@@ -244,5 +329,32 @@ export class MoviesApiService {
 			// We have cached results, just clear error and retry
 			this.clearError();
 		}
+	}
+
+	/**
+	 * Get movie images (backdrops, posters, logos)
+	 * Returns backdrops for "scenes" feature
+	 */
+	getMovieImages(id: string): Observable<any> {
+		if (!id) {
+			return of({ backdrops: [], posters: [], logos: [] });
+		}
+
+		// Extract TMDb ID from our format
+		const tmdbId = id.startsWith('tmdb_') ? id.replace('tmdb_', '') : id;
+
+		return this.http
+			.get<any>(`${this.BASE_URL}/movie/${tmdbId}/images`, {
+				params: { api_key: this.API_KEY },
+			})
+			.pipe(
+				tap((response) => {
+					// Just return the response, caller handles the data
+				}),
+				catchError((err) => {
+					console.error('Failed to load movie images:', err);
+					return of({ backdrops: [], posters: [], logos: [] });
+				}),
+			);
 	}
 }

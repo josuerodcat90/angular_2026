@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit, HostListener } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MoviesApiService } from '../services/movies-api.service';
@@ -15,737 +15,410 @@ import { FavoritesService } from '../services/favorites.service';
  * - Toggle favorite status
  * - Back button to navigate
  *
- * Pattern: Signals with computed derived state
- * - movieId from route params
- * - movie from service signal (populated by API call)
- * - isFavorite computed from FavoritesService
+ * Design: Tailwind CSS + Phosphor Icons + Dark mode support
  */
 @Component({
 	selector: 'app-movie-detail',
 	standalone: true,
 	imports: [CommonModule, RouterLink],
 	template: `
-		<div class="movie-detail-container">
-			<!-- Header con botón atrás -->
-			<div class="detail-header">
-				<button class="back-btn" [routerLink]="['/movies']" title="Back to movies">
-					← Back
+		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
+			<!-- Header -->
+			<div class="flex items-center gap-4 mb-6">
+				<button 
+					[routerLink]="['/movies']" 
+					class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors cursor-pointer"
+				>
+					<i class="ph ph-arrow-left" aria-hidden="true"></i> Back
 				</button>
-				<h1>Movie Details</h1>
-				<div class="spacer"></div>
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-white flex-1 text-center">Movie Details</h1>
+				<div class="w-20"></div>
 			</div>
 
-			<!-- Loading state -->
-			@if (this.apiService.isLoading()) {
-				<div class="loading">
-					<div class="spinner"></div>
-					<p>Loading details...</p>
+						<!-- Loading state -->
+			@if (apiService.isLoading()) {
+				<div role="status" aria-live="polite" class="flex flex-col items-center justify-center p-12 bg-gray-200 dark:bg-gray-800 rounded-xl">
+					<i class="ph ph-spinner animate-spin text-5xl text-blue-600 dark:text-blue-400 mb-4" aria-hidden="true"></i>
+					<p class="text-gray-600 dark:text-gray-400 text-lg">Loading details...</p>
 				</div>
 			}
 
 			<!-- Error state -->
-			@if (this.apiService.error() && !this.apiService.isLoading()) {
-				<div class="error">
-					<p>{{ this.apiService.error() }}</p>
-					<button (click)="this.apiService.clearError()" class="btn-primary">
-						Close
-					</button>
+			@if (apiService.error() && !apiService.isLoading()) {
+				<div class="bg-red-50 dark:bg-red-900/20 border border-red-500 text-red-700 dark:text-red-400 p-6 rounded-xl">
+					<div class="flex flex-col items-center gap-4">
+						<p class="text-lg">{{ apiService.error() }}</p>
+						<button 
+							(click)="apiService.clearError()" 
+							class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+						>
+							Close
+						</button>
+					</div>
 				</div>
 			}
 
 			<!-- Movie detail content -->
-			@if (this.movie() && !this.apiService.isLoading()) {
-				<div class="detail-wrapper">
-					<!-- HERO SECTION: Poster + Título + Favoritos -->
-					<div class="hero-section">
-						<div class="poster-section">
+			@if (movie() && !apiService.isLoading()) {
+				<!-- HERO: Poster + Info + Plot with frosted glass background -->
+				<div class="relative bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md overflow-hidden">
+					<!-- Frosted glass background image -->
+					@if (heroPoster()) {
+						<div 
+							class="absolute inset-0 bg-cover bg-center opacity-40 blur-xl scale-110"
+							[style.backgroundImage]="'url(' + heroPoster() + ')'"
+						></div>
+						<!-- Overlay -->
+						<div class="absolute inset-0 bg-white/20 dark:bg-black/40"></div>
+					}
+					
+					<!-- Content -->
+					<div class="relative flex flex-col md:flex-row gap-6 h-[400px]">
+						<!-- Poster -->
+						<div class="flex-shrink-0 h-full">
 							<img
-								[src]="this.movie()!.Poster"
-								[alt]="this.movie()!.Title"
-								class="poster-image"
+								[src]="movie()!.Poster"
+								[alt]="movie()!.Title"
+								class="h-full w-auto rounded-lg shadow-lg object-cover"
 							/>
-							<button
-								(click)="this.toggleFavorite()"
-								[class.is-favorite]="this.isFavorite()"
-								class="btn-favorite"
-								[title]="this.isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
-							>
-								{{ this.isFavorite() ? '♥ Favorited' : '♡ Add to Favorites' }}
-							</button>
 						</div>
 
-						<div class="title-section">
-							<h2 class="movie-title">{{ this.movie()!.Title }}</h2>
-							
-							<!-- Info General: Año, Tipo, Duración, Rated -->
-							<div class="quick-info">
-								@if (this.movie()!.Year) {
-									<div class="info-badge">
-										<span class="icon">📅</span>
-										<span>{{ this.movie()!.Year }}</span>
+						<!-- Info -->
+						<div class="flex-1 flex flex-col justify-between h-full gap-4">
+							<h2 class="text-3xl font-bold text-gray-900 dark:text-white leading-tight drop-shadow-md">
+								{{ movie()!.Title }}
+							</h2>
+
+							<!-- Quick info badges -->
+							<div class="flex flex-wrap gap-2">
+								@if (movie()!.Year) {
+									<span class="flex items-center gap-1 px-3 py-1.5 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-full text-sm text-gray-800 dark:text-gray-200">
+										<i class="ph ph-calendar-blank" aria-hidden="true"></i>{{ movie()!.Year }}
+									</span>
+								}
+								@if (movie()!.Type) {
+									<span class="px-3 py-1.5 bg-blue-500/80 text-white rounded-full text-sm font-medium uppercase backdrop-blur-sm">
+										{{ movie()!.Type }}
+									</span>
+								}
+								@if (movie()!.Runtime && movie()!.Runtime !== 'N/A') {
+									<span class="flex items-center gap-1 px-3 py-1.5 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-full text-sm text-gray-800 dark:text-gray-200">
+										<i class="ph ph-clock" aria-hidden="true"></i>{{ movie()!.Runtime }}
+									</span>
+								}
+								@if (movie()!.Rated && movie()!.Rated !== 'N/A') {
+									<span class="px-3 py-1.5 bg-orange-500/80 text-white rounded-full text-sm font-medium backdrop-blur-sm">
+										{{ movie()!.Rated }}
+									</span>
+								}
+							</div>
+
+							<!-- Plot + Favorite Button (juntos, con space-between) -->
+							<div class="flex flex-col justify-between gap-4 flex-1">
+								<!-- Plot en caja separada -->
+								@if (movie()!.Plot && movie()!.Plot !== 'N/A') {
+									<div class="bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 border-l-4 border-blue-500">
+										<div class="flex items-center gap-2 mb-2">
+											<i class="ph ph-book-open text-xl text-blue-600 dark:text-blue-400" aria-hidden="true"></i>
+											<span class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">Plot</span>
+										</div>
+										<p class="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{{ movie()!.Plot }}</p>
 									</div>
 								}
-								@if (this.movie()!.Type) {
-									<div class="info-badge">
-										<span class="icon">🎬</span>
-										<span>{{ this.movie()!.Type | uppercase }}</span>
-									</div>
-								}
-								@if (this.movie()!.Runtime) {
-									<div class="info-badge">
-										<span class="icon">⏱️</span>
-										<span>{{ this.movie()!.Runtime }}</span>
-									</div>
-								}
-								@if (this.movie()!.Rated) {
-									<div class="info-badge rated">
-										<span class="icon">🔞</span>
-										<span>{{ this.movie()!.Rated }}</span>
-									</div>
-								}
+
+								<!-- Favorite button (al fondo) -->
+								<button
+									(click)="toggleFavorite()"
+									(mouseenter)="onHover(true)"
+									(mouseleave)="onHover(false)"
+									[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+									class="group relative flex items-center justify-center gap-2 px-6 py-3 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm text-white rounded-lg font-medium transition-colors cursor-pointer"
+									[class.bg-pink-500]="isFavorite()"
+									[class.dark:bg-pink-600]="isFavorite()"
+									[class.hover:bg-gray-400]="!isFavorite()"
+									[class.dark:hover:bg-gray-600]="!isFavorite()"
+									[class.hover:bg-pink-600]="isFavorite()"
+									[class.dark:hover:bg-pink-700]="isFavorite()"
+								>
+									<!-- Icono: ph-heart si no es favorito, ph-fill ph-heart si lo es, ph-fill ph-heart-break en hover cuando es favorito -->
+									<i class="text-xl" 
+										[class]="!isFavorite() ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')"
+										aria-hidden="true">
+									</i>
+									<span class="group-hover:hidden">{{ isFavorite() ? 'Favorited' : 'Add to Favorites' }}</span>
+									<span class="hidden group-hover:inline">{{ isFavorite() ? 'Remove' : 'Add to Favorites' }}</span>
+								</button>
 							</div>
 						</div>
-					</div>
-
-					<!-- MAIN CONTENT -->
-					<div class="detail-content">
-						<!-- SECTION 1: Plot/Synopsis -->
-						@if (this.movie()!.Plot) {
-							<section class="detail-section plot-section">
-								<div class="section-header">
-									<h3>📖 Plot</h3>
-								</div>
-								<div class="section-content">
-									<p class="plot-text">{{ this.movie()!.Plot }}</p>
-								</div>
-							</section>
-						}
-
-						<!-- SECTION 2: Genres -->
-						@if (this.movie()!.Genre) {
-							<section class="detail-section genre-section">
-								<div class="section-header">
-									<h3>🎭 Genres</h3>
-								</div>
-								<div class="section-content">
-									<div class="tags">
-										@for (genre of this.getGenres(); track genre) {
-											<span class="tag">{{ genre }}</span>
-										}
-									</div>
-								</div>
-							</section>
-						}
-
-						<!-- SECTION 3: Ratings -->
-						<section class="detail-section ratings-section">
-							<div class="section-header">
-								<h3>⭐ Ratings</h3>
-							</div>
-							<div class="section-content ratings-grid">
-								@if (this.movie()!.voteAverage) {
-									<div class="rating-card">
-										<div class="rating-value">{{ this.formatRating(this.movie()!.voteAverage || 0) }}/10</div>
-										<div class="rating-label">TMDb</div>
-									</div>
-									<div class="rating-card votes-card">
-										<div class="votes-badge">{{ this.formatVoteCount(this.movie()!.voteCount || 0) }}</div>
-										<div class="rating-label">Votes</div>
-									</div>
-								}
-								@if (!this.movie()!.voteAverage) {
-									<div class="no-data">
-										<p>No ratings available</p>
-									</div>
-								}
-							</div>
-						</section>
-
-						<!-- SECTION 4: Crew -->
-						<section class="detail-section crew-section">
-							<div class="section-header">
-								<h3>👥 Crew</h3>
-							</div>
-							<div class="section-content crew-grid">
-								@if (this.movie()!.Director) {
-									<div class="crew-card">
-										<div class="crew-role">🎥 Director</div>
-										<div class="crew-names">{{ this.movie()!.Director }}</div>
-									</div>
-								}
-								@if (this.movie()!.Writer) {
-									<div class="crew-card">
-										<div class="crew-role">✍️ Writer</div>
-										<div class="crew-names">{{ this.movie()!.Writer }}</div>
-									</div>
-								}
-								@if (this.movie()!.Actors) {
-									<div class="crew-card full-width">
-										<div class="crew-role">🎭 Cast</div>
-										<div class="crew-names actors-list">{{ this.movie()!.Actors }}</div>
-									</div>
-								}
-								@if (!this.movie()!.Director && !this.movie()!.Writer && !this.movie()!.Actors) {
-									<div class="no-data">
-										<p>No crew information available</p>
-									</div>
-								}
-							</div>
-						</section>
-
-						<!-- SECTION 5: Additional Info -->
-						<section class="detail-section additional-section">
-							<div class="section-header">
-								<h3>ℹ️ Additional Info</h3>
-							</div>
-							<div class="section-content additional-grid">
-								@if (this.movie()!.Released) {
-									<div class="info-item">
-										<span class="info-label">Release Date:</span>
-										<span class="info-value">{{ this.movie()!.Released }}</span>
-									</div>
-								}
-								@if (this.movie()!.Type) {
-									<div class="info-item">
-										<span class="info-label">Type:</span>
-										<span class="info-value">{{ this.movie()!.Type }}</span>
-									</div>
-								}
-								@if (this.movie()!.imdbID) {
-									<div class="info-item">
-										<span class="info-label">IMDb ID:</span>
-										<span class="info-value">{{ this.movie()!.imdbID }}</span>
-									</div>
-								}
-								@if (!this.movie()!.Released && !this.movie()!.Type && !this.movie()!.imdbID) {
-									<div class="no-data">
-										<p>No additional information available</p>
-									</div>
-								}
-							</div>
-						</section>
 					</div>
 				</div>
+
+				<!-- Genres -->
+				@if (movie()!.Genre) {
+					<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
+						<div class="flex items-center gap-2 mb-4">
+							<i class="ph ph-tag text-2xl text-green-600 dark:text-green-400" aria-hidden="true"></i>
+							<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Genres</h3>
+						</div>
+						<div class="flex flex-wrap gap-2">
+							@for (genre of getGenres(); track genre) {
+								<span class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm font-medium transition-colors">
+									{{ genre }}
+								</span>
+							}
+						</div>
+					</section>
+				}
+
+				<!-- Backdrops / Scenes -->
+				@if (backdrops().length > 0) {
+					<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
+						<div class="flex items-center justify-between mb-4">
+							<div class="flex items-center gap-2">
+								<i class="ph ph-images text-2xl text-purple-600 dark:text-purple-400" aria-hidden="true"></i>
+								<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Scenes</h3>
+							</div>
+							@if (backdrops().length > 8) {
+								<span class="px-3 py-1 bg-purple-500/80 text-white rounded-full text-sm font-medium backdrop-blur-sm" aria-label="{{ backdrops().length - 8 }} additional images">
+									+{{ backdrops().length - 8 }}
+								</span>
+							} @else if (backdrops().length > 0) {
+								<span class="px-3 py-1 bg-purple-500/80 text-white rounded-full text-sm font-medium backdrop-blur-sm">
+									{{ backdrops().length }}
+								</span>
+							}
+						</div>
+						<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+							@for (backdrop of sceneBackdrops(); track backdrop.file_path; let i = $index) {
+								<img
+									[src]="'https://image.tmdb.org/t/p/w780' + backdrop.file_path"
+									[alt]="'Scene from ' + movie()!.Title"
+									(click)="openImageModal(i)"
+									class="w-full h-32 object-cover rounded-lg shadow-md hover:scale-105 transition-transform cursor-pointer"
+								/>
+							}
+						</div>
+					</section>
+				}
+
+				<!-- Image Modal -->
+				@if (showImageModal()) {
+					<div 
+						role="dialog"
+						aria-modal="true"
+						aria-label="Image gallery"
+						class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm image-modal-container"
+						[class.animate-fade-in]="!isClosing()"
+						[class.animate-fade-out]="isClosing()"
+						tabindex="-1"
+						(click)="closeImageModal()"
+					>
+						<!-- Close button -->
+						<button
+							(click)="closeImageModal()"
+							aria-label="Close gallery"
+							title="Close"
+							class="fixed top-24 right-4 flex items-center justify-center p-3 bg-gray-900/50 hover:bg-gray-900/80 text-white rounded-full shadow-lg transition-colors cursor-pointer"
+						>
+							<i class="ph ph-x text-2xl" aria-hidden="true"></i>
+						</button>
+
+						<!-- Previous button -->
+						<button
+							(click)="prevImage(); $event.stopPropagation()"
+							[disabled]="currentImageIndex() === 0"
+							aria-label="Previous image"
+							title="Previous image"
+							class="absolute left-4 z-10 flex items-center justify-center p-3 bg-gray-900/50 hover:bg-gray-900/80 text-white rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed animate-slide-in-left cursor-pointer"
+						>
+							<i class="ph ph-caret-left text-2xl" aria-hidden="true"></i>
+						</button>
+
+						<!-- Image -->
+						<div class="w-full h-full flex items-center justify-center">
+							<img
+								[src]="'https://image.tmdb.org/t/p/original' + backdrops()[currentImageIndex()].file_path"
+								[alt]="'Scene ' + (currentImageIndex() + 1) + ' of ' + backdrops().length"
+								[class.animate-fade-in-out]="slideDirection() !== null"
+								class="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl"
+								(click)="$event.stopPropagation()"
+							/>
+						</div>
+
+						<!-- Next button -->
+						<button
+							(click)="nextImage(); $event.stopPropagation()"
+							[disabled]="currentImageIndex() === backdrops().length - 1"
+							aria-label="Next image"
+							title="Next image"
+							class="absolute right-4 z-10 flex items-center justify-center p-3 bg-gray-900/50 hover:bg-gray-900/80 text-white rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed animate-slide-in-right cursor-pointer"
+						>
+							<i class="ph ph-caret-right text-2xl" aria-hidden="true"></i>
+						</button>
+
+						<!-- Counter -->
+						<div aria-live="polite" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/50 px-4 py-2 rounded-full text-white text-sm animate-fade-in-up">
+							{{ currentImageIndex() + 1 }} / {{ backdrops().length }}
+						</div>
+					</div>
+				}
+
+				<!-- Ratings -->
+				<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
+					<div class="flex items-center gap-2 mb-4">
+						<i class="ph ph-star text-2xl text-yellow-500 dark:text-yellow-400" aria-hidden="true"></i>
+						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Ratings</h3>
+					</div>
+					@if (movie()!.voteAverage) {
+						<div class="grid grid-cols-2 gap-4">
+							<div class="flex flex-col items-center px-6 py-4 bg-yellow-500 rounded-lg">
+								<span class="text-3xl font-bold text-white">{{ formatRating(movie()!.voteAverage || 0) }}/10</span>
+								<span class="text-sm text-white/80 font-medium">TMDb</span>
+							</div>
+							<div class="flex flex-col items-center px-6 py-4 bg-blue-600 rounded-lg">
+								<span class="text-3xl font-bold text-white">{{ formatVoteCount(movie()!.voteCount || 0) }}</span>
+								<span class="text-sm text-white/80 font-medium">Votes</span>
+							</div>
+						</div>
+					} @else {
+						<p class="text-gray-500 dark:text-gray-400">No ratings available</p>
+					}
+				</section>
+
+				<!-- Crew -->
+				<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
+					<div class="flex items-center gap-2 mb-4">
+						<i class="ph ph-users text-2xl text-pink-600 dark:text-pink-400" aria-hidden="true"></i>
+						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Crew</h3>
+					</div>
+					<div class="grid gap-4">
+						@if (movie()!.Director) {
+							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-pink-500">
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">Director</span>
+								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.Director }}</span>
+							</div>
+						}
+						@if (movie()!.Writer) {
+							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-pink-500">
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">Writer</span>
+								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.Writer }}</span>
+							</div>
+						}
+						@if (movie()!.Actors) {
+							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-pink-500">
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">Cast</span>
+								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.Actors }}</span>
+							</div>
+						}
+						@if (!movie()!.Director && !movie()!.Writer && !movie()!.Actors) {
+							<p class="text-gray-500 dark:text-gray-400">No crew information available</p>
+						}
+					</div>
+				</section>
+
+				<!-- Additional Info -->
+				<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
+					<div class="flex items-center gap-2 mb-4">
+						<i class="ph ph-info text-2xl text-indigo-600 dark:text-indigo-400" aria-hidden="true"></i>
+						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Additional Info</h3>
+					</div>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						@if (movie()!.Released) {
+							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-indigo-500">
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">Release Date</span>
+								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.Released }}</span>
+							</div>
+						}
+						@if (movie()!.imdbID) {
+							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-indigo-500">
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">IMDb ID</span>
+								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.imdbID }}</span>
+							</div>
+						}
+					</div>
+				</section>
 			}
 
 			<!-- No movie found -->
-			@if (!this.movie() && !this.apiService.isLoading() && !this.apiService.error()) {
-				<div class="no-movie">
-					<p>Movie not found</p>
-					<button [routerLink]="['/movies']" class="btn-primary">
-						Back to Search
+			@if (!movie() && !apiService.isLoading() && !apiService.error()) {
+				<div class="flex flex-col items-center justify-center p-12 bg-gray-200 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-600">
+					<i class="ph ph-film-slate text-6xl text-gray-400 dark:text-gray-500 mb-4" aria-hidden="true"></i>
+					<p class="text-xl text-gray-700 dark:text-gray-300 mb-6">Movie not found</p>
+					<button 
+						[routerLink]="['/movies']" 
+						class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+					>
+						<i class="ph ph-arrow-left mr-2" aria-hidden="true"></i>Back to Search
 					</button>
 				</div>
 			}
 		</div>
 	`,
-	styles: `
-		.movie-detail-container {
-			padding: 2rem;
-			max-width: 1400px;
-			margin: 0 auto;
-			background: var(--gradient-bg);
-			min-height: 100vh;
+	styles: [
+		`
+		@keyframes fadeIn {
+			from { opacity: 0; }
+			to { opacity: 1; }
 		}
-
-		.detail-header {
-			display: flex;
-			align-items: center;
-			gap: 1rem;
-			margin-bottom: 2rem;
-			background: var(--color-bg-primary);
-			padding: 1.5rem;
-			border-radius: 8px;
-			box-shadow: 0 2px 8px var(--color-shadow);
+		@keyframes fadeOut {
+			from { opacity: 1; }
+			to { opacity: 0; }
 		}
-
-		.back-btn {
-			padding: 0.6rem 1.2rem;
-			background: var(--color-accent);
-			color: white;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-			font-size: 1rem;
-			transition: all 0.3s;
-			font-weight: 600;
+		@keyframes zoomIn {
+			from { opacity: 0; transform: scale(0.9); }
+			to { opacity: 1; transform: scale(1); }
 		}
-
-		.back-btn:hover {
-			background: var(--color-accent-hover);
-			box-shadow: 0 2px 8px var(--color-shadow);
+		@keyframes slideInLeft {
+			from { opacity: 0; transform: translateX(-20px); }
+			to { opacity: 1; transform: translateX(0); }
 		}
-
-		.detail-header h1 {
-			margin: 0;
-			flex: 1;
-			text-align: center;
-			color: var(--color-text-primary);
+		@keyframes slideInRight {
+			from { opacity: 0; transform: translateX(20px); }
+			to { opacity: 1; transform: translateX(0); }
 		}
-
-		.spacer {
-			width: 60px;
+		@keyframes fadeInUp {
+			from { opacity: 0; transform: translateY(10px); }
+			to { opacity: 1; transform: translateY(0); }
 		}
-
-		.loading,
-		.error,
-		.no-movie {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			gap: 1.5rem;
-			padding: 4rem 2rem;
-			border-radius: 12px;
-			text-align: center;
-			background: var(--color-bg-primary);
+		@keyframes imageFade {
+			0% { opacity: 0; }
+			30% { opacity: 0; }
+			100% { opacity: 1; }
 		}
-
-		.error {
-			background: color-mix(in srgb, var(--color-error) 10%, var(--color-bg-primary));
-			color: var(--color-error);
-			border-left: 5px solid var(--color-error);
-		}
-
-		.no-movie {
-			background: var(--color-bg-secondary);
-			border: 2px dashed var(--color-border);
-		}
-
-		.spinner {
-			width: 50px;
-			height: 50px;
-			border: 4px solid var(--color-border);
-			border-top-color: var(--color-accent);
-			border-radius: 50%;
-			animation: spin 0.8s linear infinite;
-		}
-
-		@keyframes spin {
-			to {
-				transform: rotate(360deg);
-			}
-		}
-
-		.detail-wrapper {
-			display: flex;
-			flex-direction: column;
-			gap: 2rem;
-		}
-
-		/* HERO SECTION */
-		.hero-section {
-			display: grid;
-			grid-template-columns: 320px 1fr;
-			gap: 3rem;
-			background: var(--color-bg-primary);
-			padding: 2.5rem;
-			border-radius: 12px;
-			box-shadow: 0 4px 16px var(--color-shadow);
-			align-items: start;
-		}
-
-		.poster-section {
-			display: flex;
-			flex-direction: column;
-			gap: 1rem;
-			align-items: center;
-		}
-
-		.poster-image {
-			width: 100%;
-			height: auto;
-			max-width: 320px;
-			border-radius: 8px;
-			box-shadow: 0 8px 24px var(--color-shadow-heavy);
-			object-fit: cover;
-		}
-
-		.btn-favorite {
-			width: 100%;
-			padding: 0.9rem 1.5rem;
-			background: var(--color-text-tertiary);
-			color: white;
-			border: none;
-			border-radius: 6px;
-			cursor: pointer;
-			font-size: 1rem;
-			font-weight: 600;
-			transition: all 0.3s;
-			text-transform: uppercase;
-			letter-spacing: 0.5px;
-		}
-
-		.btn-favorite:hover {
-			background: var(--color-text-secondary);
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px var(--color-shadow);
-		}
-
-		.btn-favorite.is-favorite {
-			background: linear-gradient(135deg, #e91e63, #c2185b);
-		}
-
-		.btn-favorite.is-favorite:hover {
-			background: linear-gradient(135deg, #c2185b, #ad1457);
-		}
-
-		.title-section {
-			display: flex;
-			flex-direction: column;
-			gap: 1.5rem;
-		}
-
-		.movie-title {
-			margin: 0;
-			font-size: 2.5rem;
-			color: var(--color-text-primary);
-			line-height: 1.2;
-			font-weight: 700;
-		}
-
-		.quick-info {
-			display: flex;
-			gap: 1rem;
-			flex-wrap: wrap;
-		}
-
-		.info-badge {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.6rem;
-			padding: 0.7rem 1.2rem;
-			background: var(--color-bg-secondary);
-			border-radius: 20px;
-			border-left: 3px solid var(--color-accent);
-			font-weight: 600;
-			color: var(--color-text-primary);
-			font-size: 0.95rem;
-		}
-
-		.info-badge.rated {
-			border-left-color: var(--color-warning);
-		}
-
-		.info-badge .icon {
-			font-size: 1.2rem;
-		}
-
-		/* MAIN CONTENT SECTIONS */
-		.detail-content {
-			display: flex;
-			flex-direction: column;
-			gap: 2rem;
-		}
-
-		.detail-section {
-			background: var(--color-bg-primary);
-			border-radius: 12px;
-			overflow: hidden;
-			box-shadow: 0 2px 12px var(--color-shadow);
-			transition: transform 0.3s, box-shadow 0.3s;
-		}
-
-		.detail-section:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 4px 16px var(--color-shadow-heavy);
-		}
-
-		.section-header {
-			padding: 1.5rem;
-			border-bottom: 2px solid var(--color-border);
-			background: var(--color-bg-secondary);
-		}
-
-		.section-header h3 {
-			margin: 0;
-			font-size: 1.4rem;
-			color: var(--color-text-primary);
-			font-weight: 700;
-		}
-
-		.section-content {
-			padding: 1.5rem;
-		}
-
-		/* PLOT SECTION */
-		.plot-section .section-header {
-			border-bottom-color: var(--color-warning);
-			background: color-mix(in srgb, var(--color-warning) 5%, var(--color-bg-secondary));
-		}
-
-		.plot-text {
-			margin: 0;
-			line-height: 1.8;
-			color: var(--color-text-secondary);
-			font-size: 1.05rem;
-			text-align: justify;
-		}
-
-		/* GENRE SECTION */
-		.genre-section .section-header {
-			border-bottom-color: var(--color-success);
-			background: color-mix(in srgb, var(--color-success) 5%, var(--color-bg-secondary));
-		}
-
-		.tags {
-			display: flex;
-			gap: 0.8rem;
-			flex-wrap: wrap;
-		}
-
-		.tag {
-			display: inline-block;
-			padding: 0.6rem 1.2rem;
-			background: linear-gradient(135deg, var(--color-success), #45a049);
-			color: white;
-			border-radius: 20px;
-			font-weight: 600;
-			font-size: 0.9rem;
-		}
-
-		/* RATINGS SECTION */
-		.ratings-section .section-header {
-			border-bottom-color: var(--color-warning);
-			background: color-mix(in srgb, var(--color-warning) 5%, var(--color-bg-secondary));
-		}
-
-		.ratings-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-			gap: 1.5rem;
-		}
-
-		.rating-card {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			padding: 1.5rem;
-			background: linear-gradient(135deg, var(--color-warning), #ff9800);
-			border-radius: 8px;
-			color: white;
-			text-align: center;
-		}
-
-		.rating-value {
-			font-size: 2.5rem;
-			font-weight: 700;
-			margin-bottom: 0.5rem;
-		}
-
-		.rating-label {
-			font-size: 0.9rem;
-			text-transform: uppercase;
-			letter-spacing: 1px;
-			opacity: 0.9;
-			font-weight: 600;
-		}
-
-		.rating-scale {
-			font-size: 0.85rem;
-			opacity: 0.8;
-		}
-
-		.votes-card {
-			background: linear-gradient(135deg, var(--color-accent), var(--color-accent-hover));
-		}
-
-		.votes-badge {
-			font-size: 2rem;
-			font-weight: 700;
-			margin-bottom: 0.5rem;
-		}
-
-		/* CREW SECTION */
-		.crew-section .section-header {
-			border-bottom-color: #e91e63;
-			background: color-mix(in srgb, #e91e63 5%, var(--color-bg-secondary));
-		}
-
-		.crew-grid {
-			display: grid;
-			gap: 1.5rem;
-		}
-
-		.crew-card {
-			padding: 1.5rem;
-			background: var(--color-bg-secondary);
-			border-left: 4px solid #e91e63;
-			border-radius: 4px;
-		}
-
-		.crew-card.full-width {
-			grid-column: 1 / -1;
-		}
-
-		.crew-role {
-			font-size: 0.9rem;
-			color: var(--color-text-tertiary);
-			text-transform: uppercase;
-			letter-spacing: 0.5px;
-			font-weight: 700;
-			margin-bottom: 0.8rem;
-		}
-
-		.crew-names {
-			color: var(--color-text-primary);
-			line-height: 1.6;
-			font-weight: 500;
-		}
-
-		.actors-list {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.5rem;
-		}
-
-		/* ADDITIONAL INFO SECTION */
-		.additional-section .section-header {
-			border-bottom-color: #3f51b5;
-			background: color-mix(in srgb, #3f51b5 5%, var(--color-bg-secondary));
-		}
-
-		.additional-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-			gap: 1.5rem;
-		}
-
-		.info-item {
-			padding: 1rem;
-			background: var(--color-bg-secondary);
-			border-left: 4px solid #3f51b5;
-			border-radius: 4px;
-		}
-
-		.info-label {
-			display: block;
-			font-weight: 700;
-			color: var(--color-text-tertiary);
-			text-transform: uppercase;
-			font-size: 0.85rem;
-			margin-bottom: 0.5rem;
-			letter-spacing: 0.5px;
-		}
-
-		.info-value {
-			display: block;
-			color: var(--color-text-primary);
-			font-size: 1rem;
-			word-break: break-word;
-		}
-
-		.no-data {
-			padding: 2rem;
-			text-align: center;
-			color: var(--color-text-tertiary);
-		}
-
-		.no-data p {
-			margin: 0;
-		}
-
-		.btn-primary {
-			padding: 0.8rem 1.5rem;
-			background: var(--color-accent);
-			color: white;
-			border: none;
-			border-radius: 6px;
-			cursor: pointer;
-			font-size: 1rem;
-			font-weight: 600;
-			transition: all 0.3s;
-		}
-
-		.btn-primary:hover {
-			background: var(--color-accent-hover);
-			box-shadow: 0 4px 12px var(--color-shadow);
-		}
-
-		/* RESPONSIVE */
-		@media (max-width: 1024px) {
-			.hero-section {
-				grid-template-columns: 1fr;
-				gap: 2rem;
-			}
-
-			.movie-title {
-				font-size: 2rem;
-			}
-		}
-
-		@media (max-width: 768px) {
-			.movie-detail-container {
-				padding: 1rem;
-			}
-
-			.hero-section {
-				padding: 1.5rem;
-			}
-
-			.movie-title {
-				font-size: 1.8rem;
-			}
-
-			.quick-info {
-				flex-direction: column;
-			}
-
-			.info-badge {
-				width: 100%;
-				justify-content: center;
-			}
-
-			.ratings-grid {
-				grid-template-columns: 1fr;
-			}
-
-			.crew-card {
-				padding: 1rem;
-			}
-
-			.additional-grid {
-				grid-template-columns: 1fr;
-			}
-		}
-
-		@media (max-width: 480px) {
-			.movie-detail-container {
-				padding: 0.5rem;
-			}
-
-			.detail-header {
-				flex-direction: column;
-				gap: 0.5rem;
-			}
-
-			.detail-header h1 {
-				font-size: 1.2rem;
-			}
-
-			.movie-title {
-				font-size: 1.5rem;
-			}
-
-			.poster-image {
-				max-width: 200px;
-			}
-
-			.section-header h3 {
-				font-size: 1.1rem;
-			}
-
-			.section-content {
-				padding: 1rem;
-			}
-		}
+		.animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+		.animate-fade-out { animation: fadeOut 0.2s ease-out forwards; }
+		.animate-zoom-in { animation: zoomIn 0.3s ease-out forwards; }
+		.animate-slide-in-left { animation: slideInLeft 0.3s ease-out forwards; }
+		.animate-slide-in-right { animation: slideInRight 0.3s ease-out forwards; }
+		.animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+		.animate-fade-in-out { animation: imageFade 0.25s ease-out forwards; }
 	`,
+	],
 })
 export class MovieDetailPage implements OnInit {
 	private route = inject(ActivatedRoute);
 
 	apiService = inject(MoviesApiService);
 	private favoritesService = inject(FavoritesService);
+
+	// Keyboard listener for modal navigation
+	@HostListener('window:keydown', ['$event'])
+	onKeyDown(event: KeyboardEvent) {
+		if (this.showImageModal()) {
+			if (event.key === 'ArrowLeft') {
+				this.prevImage();
+				event.preventDefault();
+			} else if (event.key === 'ArrowRight') {
+				this.nextImage();
+				event.preventDefault();
+			} else if (event.key === 'Escape') {
+				this.closeImageModal();
+			} else if (event.key === 'Tab') {
+				// Focus trap: prevent Tab from leaving modal
+				event.preventDefault();
+			}
+		}
+	}
 
 	// Signal: movie ID from route params
 	private movieId = signal<string | null>(null);
@@ -763,6 +436,78 @@ export class MovieDetailPage implements OnInit {
 	// Computed: current movie from service signal
 	movie = computed(() => this.apiService.movieDetail());
 
+	// Track hover state for icon change
+	isHovering = signal(false);
+
+	// Poster for background (updated when movie loads)
+	heroPoster = signal<string>('');
+
+	onHover(hovering: boolean) {
+		this.isHovering.set(hovering);
+	}
+
+	// Backdrops for scenes section
+	backdrops = computed(() => this.apiService.movieBackdrops());
+
+	// Image modal state
+	showImageModal = signal(false);
+	currentImageIndex = signal(0);
+	isClosing = signal(false);
+	imageKey = signal(0); // Trigger for image change animation
+	slideDirection = signal<'left' | 'right' | null>('right'); // Direction for slide animation
+
+	// Backdrops for scenes section (only first 8)
+	sceneBackdrops = computed(() => this.backdrops().slice(0, 8));
+
+	// Open image modal at specific index
+	openImageModal(index: number) {
+		this.currentImageIndex.set(index);
+		this.isClosing.set(false);
+		this.imageKey.set(0); // Reset animation
+		this.showImageModal.set(true);
+
+		// Focus the modal container for keyboard navigation
+		setTimeout(() => {
+			const modal = document.querySelector('.image-modal-container') as HTMLElement;
+			if (modal) {
+				modal.focus();
+			}
+		}, 100);
+	}
+
+	// Close image modal with animation
+	closeImageModal() {
+		this.isClosing.set(true);
+		setTimeout(() => {
+			this.showImageModal.set(false);
+			this.isClosing.set(false);
+		}, 200); // Wait for animation to complete
+	}
+
+	// Navigate to previous image
+	prevImage() {
+		if (this.currentImageIndex() > 0) {
+			// Reset direction to trigger animation
+			this.slideDirection.set(null);
+			setTimeout(() => {
+				this.slideDirection.set('right');
+				this.currentImageIndex.update((i) => i - 1);
+			}, 50);
+		}
+	}
+
+	// Navigate to next image
+	nextImage() {
+		if (this.currentImageIndex() < this.backdrops().length - 1) {
+			// Reset direction to trigger animation
+			this.slideDirection.set(null);
+			setTimeout(() => {
+				this.slideDirection.set('left');
+				this.currentImageIndex.update((i) => i + 1);
+			}, 50);
+		}
+	}
+
 	constructor() {
 		// Effect: when movieId changes, fetch movie details
 		effect(() => {
@@ -771,6 +516,38 @@ export class MovieDetailPage implements OnInit {
 				this.apiService.getMovieDetail(id).subscribe({
 					error: (err) => console.error('Failed to load movie:', err),
 				});
+				// Fetch backdrops with dedup
+				this.apiService.getMovieImages(id).subscribe((response) => {
+					const backdrops: Array<{ file_path: string }> = response.backdrops || [];
+					// Filter unique by file_path using a Map
+					const seen = new Set<string>();
+					const unique = backdrops.filter((b: { file_path: string }) => {
+						if (seen.has(b.file_path)) return false;
+						seen.add(b.file_path);
+						return true;
+					});
+					// Keep 20 for modal, but only display 8 in scenes
+					this.apiService.movieBackdrops.set(unique.slice(0, 20));
+				});
+			}
+		});
+
+		// Effect: update hero poster when movie loads
+		effect(() => {
+			const m = this.movie();
+			if (m?.Poster) {
+				this.heroPoster.set(m.Poster);
+			}
+		});
+
+		// Effect: prevent body scroll when modal is open
+		effect(() => {
+			if (typeof document !== 'undefined') {
+				if (this.showImageModal()) {
+					document.body.style.overflow = 'hidden';
+				} else {
+					document.body.style.overflow = '';
+				}
 			}
 		});
 	}

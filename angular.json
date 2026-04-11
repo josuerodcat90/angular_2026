@@ -6,7 +6,7 @@
 	},
 	"newProjectRoot": "projects",
 	"projects": {
-		"CursoBigoteAngular": {
+		"movie-search": {
 			"projectType": "application",
 			"schematics": {
 				"@schematics/angular:component": {
@@ -21,6 +21,7 @@
 				"build": {
 					"builder": "@angular/build:application",
 					"options": {
+						"environmentFiles": [".env"],
 						"browser": "src/main.ts",
 						"tsConfig": "tsconfig.app.json",
 						"inlineStyleLanguage": "scss",
@@ -42,6 +43,12 @@
 					},
 					"configurations": {
 						"production": {
+							"fileReplacements": [
+								{
+									"replace": "src/environments/environment.ts",
+									"with": "src/environments/environment.prod.ts"
+								}
+							],
 							"budgets": [
 								{
 									"type": "initial",
@@ -68,10 +75,10 @@
 					"builder": "@angular/build:dev-server",
 					"configurations": {
 						"production": {
-							"buildTarget": "CursoBigoteAngular:build:production"
+							"buildTarget": "movie-search:build:production"
 						},
 						"development": {
-							"buildTarget": "CursoBigoteAngular:build:development"
+							"buildTarget": "movie-search:build:development"
 						}
 					},
 					"defaultConfiguration": "development"
