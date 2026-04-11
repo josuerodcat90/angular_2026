@@ -427,11 +427,11 @@ export class MovieDetailPage implements OnInit {
 	// Computed: is this movie in favorites?
 	isFavorite = computed(() => {
 		const movie = this.movie();
-		const favorites = this.favoritesService.favorites();
-
 		if (!movie) return false;
 
-		return favorites.some((fav) => fav.imdbID === movie.imdbID);
+		// Check IDs directly (works even before refresh)
+		const movieId = movie.imdbID?.startsWith('tmdb_') ? movie.imdbID : `tmdb_${movie.imdbID}`;
+		return this.favoritesService.isFavorite(movieId);
 	});
 
 	// Computed: current movie from service signal

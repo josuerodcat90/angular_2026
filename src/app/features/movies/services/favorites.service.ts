@@ -129,9 +129,10 @@ export class FavoritesService {
 			});
 
 			// Initial load: if we have favorites but no data, fetch them once
+			// Using setTimeout to avoid calling during constructor
 			const ids = this.favoriteIdsSignal();
-			if (ids.length > 0 && this.favoritesDataSignal().length === 0) {
-				this.refreshFavoritesData();
+			if (ids.length > 0) {
+				setTimeout(() => this.refreshFavoritesData(), 0);
 			}
 		}
 	}
@@ -139,6 +140,7 @@ export class FavoritesService {
 	/**
 	 * Refresh favorites data from API in current language
 	 * Called internally when language changes
+	 * MERGEs with existing data (doesn't lose newly added favorites)
 	 */
 	private refreshFavoritesData(): void {
 		const ids = this.favoriteIdsSignal();
@@ -149,9 +151,17 @@ export class FavoritesService {
 
 		this.isRefreshing.set(true);
 		this.moviesApi.refreshFavorites(ids.map((f) => f.tmdbId)).subscribe({
-			next: (movies) => {
-				const validMovies = movies.filter((m) => m && m.imdbID);
-				this.favoritesDataSignal.set(validMovies);
+			next: (newMovies) => {
+				const validNewMovies = newMovies.filter((m) => m && m.imdbID);
+
+				// Get existing IDs that are already in the data signal
+				const existingData = this.favoritesDataSignal();
+				const existingIds = new Set(existingData.map((m) => m.imdbID));
+
+				// Merge: keep existing + add new
+				const merged = [...existingData, ...validNewMovies.filter((m) => !existingIds.has(m.imdbID))];
+
+				this.favoritesDataSignal.set(merged);
 				this.isRefreshing.set(false);
 			},
 			error: (err) => {
@@ -163,7 +173,7 @@ export class FavoritesService {
 
 	/**
 	 * Add movie to favorites
-	 * Stores only the ID for i18n support
+	 * Stores only the ID for i18n support, plus the Movie object for immediate display
 	 */
 	addFavorite(movie: Movie): void {
 		const tmdbId = movie.imdbID?.startsWith('tmdb_') ? movie.imdbID : `tmdb_${movie.imdbID}`;
@@ -175,6 +185,14 @@ export class FavoritesService {
 			}
 			return [...current, { tmdbId, addedAt: Date.now() }];
 		});
+
+		// Also add to data signal for immediate display
+		this.favoritesDataSignal.update((current) => {
+			if (current.some((m) => m.imdbID === tmdbId)) {
+				return current;
+			}
+			return [...current, movie];
+		});
 	}
 
 	/**
@@ -183,7 +201,13 @@ export class FavoritesService {
 	removeFavorite(id: string): void {
 		const tmdbId = id.startsWith('tmdb_') ? id : `tmdb_${id}`;
 		this.favoriteIdsSignal.update((current) => current.filter((m) => m.tmdbId !== tmdbId));
-		this.favoritesDataSignal.update((current) => current.filter((m) => m.imdbID !== tmdbId));
+		// Remove from both signals
+		this.favoritesDataSignal.update((current) =>
+			current.filter((m) => {
+				const mId = m.imdbID?.startsWith('tmdb_') ? m.imdbID : `tmdb_${m.imdbID}`;
+				return mId !== tmdbId;
+			}),
+		);
 	}
 
 	/**
