@@ -39,7 +39,7 @@ TMDB_API_KEY=your_actual_key_here
 
 3. Run `bun install` and start the app — environment variables load automatically.
 
-> **Note**: `.env` is in `.gitignore` so it's never committed to git.
+
 
 ## 📦 Available Scripts
 
