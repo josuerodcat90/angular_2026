@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, effect, OnInit, HostListener } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { MoviesApiService } from '../services/movies-api.service';
@@ -27,7 +27,7 @@ import { FavoritesService } from '../services/favorites.service';
 			<!-- Header -->
 			<div class="flex items-center gap-4 mb-6">
 				<button 
-					[routerLink]="['/movies']" 
+					(click)="goBack()"
 					class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors cursor-pointer"
 				>
 					<i class="ph ph-arrow-left" aria-hidden="true"></i> {{ 'DETAILS.BACK' | translate }}
@@ -115,10 +115,10 @@ import { FavoritesService } from '../services/favorites.service';
 							</div>
 
 							<!-- Plot + Favorite Button (juntos, con space-between) -->
-							<div class="flex flex-col justify-between gap-4 flex-1">
+							<div class="flex flex-col gap-4 flex-1">
 								<!-- Plot en caja separada -->
 								@if (movie()!.Plot && movie()!.Plot !== 'N/A') {
-									<div class="bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 border-l-4 border-blue-500">
+									<div class="bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 border-l-4 border-blue-500 overflow-y-auto max-h-[200px]">
 										<div class="flex items-center gap-2 mb-2">
 											<i class="ph ph-book-open text-xl text-blue-600 dark:text-blue-400" aria-hidden="true"></i>
 											<span class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">{{ 'DETAILS.PLOT' | translate }}</span>
@@ -127,28 +127,30 @@ import { FavoritesService } from '../services/favorites.service';
 									</div>
 								}
 
-								<!-- Favorite button (al fondo) -->
-								<button
-									(click)="toggleFavorite()"
-									(mouseenter)="onHover(true)"
-									(mouseleave)="onHover(false)"
-									[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
-									class="group relative flex items-center justify-center gap-2 px-6 py-3 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm text-white rounded-lg font-medium transition-colors cursor-pointer"
-									[class.bg-pink-500]="isFavorite()"
-									[class.dark:bg-pink-600]="isFavorite()"
-									[class.hover:bg-gray-400]="!isFavorite()"
-									[class.dark:hover:bg-gray-600]="!isFavorite()"
-									[class.hover:bg-pink-600]="isFavorite()"
-									[class.dark:hover:bg-pink-700]="isFavorite()"
-								>
-									<!-- Icono: ph-heart si no es favorito, ph-fill ph-heart si lo es, ph-fill ph-heart-break en hover cuando es favorito -->
-									<i class="text-xl" 
-										[class]="!isFavorite() ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')"
-										aria-hidden="true">
-									</i>
-									<span class="group-hover:hidden">{{ isFavorite() ? ('DETAILS.FAVORITED' | translate) : ('DETAILS.ADD_FAVORITES' | translate) }}</span>
-									<span class="hidden group-hover:inline">{{ isFavorite() ? ('DETAILS.REMOVE_FAVORITES' | translate) : ('DETAILS.ADD_FAVORITES' | translate) }}</span>
-								</button>
+								<!-- Favorite button (always at bottom) -->
+								<div class="mt-auto">
+									<button
+										(click)="toggleFavorite()"
+										(mouseenter)="onHover(true)"
+										(mouseleave)="onHover(false)"
+										[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+										class="group w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm text-white rounded-lg font-medium transition-colors cursor-pointer"
+										[class.bg-pink-500]="isFavorite()"
+										[class.dark:bg-pink-600]="isFavorite()"
+										[class.hover:bg-gray-400]="!isFavorite()"
+										[class.dark:hover:bg-gray-600]="!isFavorite()"
+										[class.hover:bg-pink-600]="isFavorite()"
+										[class.dark:hover:bg-pink-700]="isFavorite()"
+									>
+										<!-- Icono: ph-heart si no es favorito, ph-fill ph-heart si lo es, ph-fill ph-heart-break en hover cuando es favorito -->
+										<i class="text-xl" 
+											[class]="!isFavorite() ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')"
+											aria-hidden="true">
+										</i>
+										<span class="group-hover:hidden">{{ isFavorite() ? ('DETAILS.FAVORITED' | translate) : ('DETAILS.ADD_FAVORITES' | translate) }}</span>
+										<span class="hidden group-hover:inline">{{ isFavorite() ? ('DETAILS.REMOVE_FAVORITES' | translate) : ('DETAILS.ADD_FAVORITES' | translate) }}</span>
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -398,9 +400,21 @@ import { FavoritesService } from '../services/favorites.service';
 })
 export class MovieDetailPage implements OnInit {
 	private route = inject(ActivatedRoute);
+	private router = inject(Router);
 
 	apiService = inject(MoviesApiService);
 	private favoritesService = inject(FavoritesService);
+
+	// Go back - try history first, then default to /movies or /favorites
+	goBack(): void {
+		// Check if there's history to go back to
+		if (window.history.length > 1) {
+			this.router.navigateByUrl('/movies');
+		} else {
+			// Default to favorites if no history
+			this.router.navigate(['/favorites']);
+		}
+	}
 
 	// Keyboard listener for modal navigation
 	@HostListener('window:keydown', ['$event'])
