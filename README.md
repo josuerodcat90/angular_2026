@@ -32,12 +32,14 @@ bun run start
 
 1. Get your free TMDb API key at [themoviedb.org/settings/api](https://wwwoviedb.org/settings/api)
 
-2. Create a `.env` file in the project root:
+2. Create a `.env` file in the project root (must use `NG_` prefix):
 ```
-TMDB_API_KEY=your_actual_key_here
+NG_TMDB_API_KEY=your_actual_key_here
 ```
 
-3. Run `bun install` and start the app — environment variables load automatically.
+3. Run `bun install` and start the app — environment variables load automatically via `@ngx-env/builder`.
+
+> **Note**: `.env` is in `.gitignore` so it's never committed to git.
 
 
 
