@@ -19,11 +19,8 @@
 			"prefix": "app",
 			"architect": {
 				"build": {
-					"builder": "@ngx-env/builder:application",
+					"builder": "@angular/build:application",
 					"options": {
-						"ngxEnv": {
-							"prefix": "NG_"
-						},
 						"browser": "src/main.ts",
 						"tsConfig": "tsconfig.app.json",
 						"inlineStyleLanguage": "scss",
