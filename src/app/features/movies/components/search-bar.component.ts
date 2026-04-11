@@ -11,6 +11,7 @@ import {
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 /**
  * SearchBarComponent — Reactive form for searching movies
@@ -34,19 +35,19 @@ import { CommonModule } from '@angular/common';
 @Component({
 	selector: 'app-search-bar',
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule],
+	imports: [CommonModule, ReactiveFormsModule, TranslateModule],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<form [formGroup]="searchForm" class="flex flex-wrap gap-4 p-6 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 transition-colors duration-150">
 			<div class="flex flex-col gap-1 flex-1 min-w-[200px]">
-				<label for="title-input" class="text-sm font-medium text-gray-700 dark:text-gray-300">Search movies:</label>
+				<label for="title-input" class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'SEARCH_BAR.LABEL' | translate }}</label>
 				<div class="relative">
 					<i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" aria-hidden="true"></i>
 					<input
 						id="title-input"
 						type="text"
 						formControlName="title"
-						placeholder="e.g., Inception, Avatar..."
+						[placeholder]="'SEARCH_BAR.PLACEHOLDER' | translate"
 						class="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-md text-base font-inherit bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 						aria-label="Movie title search"
 						aria-describedby="title-error"
@@ -56,15 +57,15 @@ import { CommonModule } from '@angular/common';
 							type="button"
 							(click)="onClear()"
 							class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-[6px] cursor-pointer transition-colors"
-							aria-label="Clear search"
-							title="Clear search"
+							[attr.aria-label]="'SEARCH_BAR.CLEAR' | translate"
+							[title]="'SEARCH_BAR.CLEAR' | translate"
 						>
 							<i class="ph ph-x text-base" aria-hidden="true"></i>
 						</button>
 					}
 				</div>
 				@if (titleControl.invalid && titleControl.touched) {
-					<span id="title-error" class="text-red-500 text-xs mt-1" role="alert">Enter a movie title (at least 1 character)</span>
+					<span id="title-error" class="text-red-500 text-xs mt-1" role="alert">{{ 'SEARCH_BAR.ERROR' | translate }}</span>
 				}
 			</div>
 		</form>

@@ -4,6 +4,7 @@ import { Observable, of, throwError, forkJoin } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { OmdbMovie, OmdbSearchResponse, Movie } from '../models/movie.model';
+import { LanguageService } from '../../../services/language.service';
 
 /**
  * TMDb API Service
@@ -13,6 +14,7 @@ import { OmdbMovie, OmdbSearchResponse, Movie } from '../models/movie.model';
 @Injectable({ providedIn: 'root' })
 export class MoviesApiService {
 	private http = inject(HttpClient);
+	private languageService = inject(LanguageService);
 
 	// Configuration
 	private readonly API_KEY = environment.tmdbApiKey;
@@ -32,6 +34,11 @@ export class MoviesApiService {
 
 	// Sort option for search results (default: oldest first)
 	sortOption = signal<string>('year-asc');
+
+	// Helper to get language params for TMDB API
+	private getLanguageParams(): { [key: string]: string } {
+		return { language: this.languageService.getTmdbLanguage() };
+	}
 
 	// Sorted search results computed
 	sortedSearchResults = computed(() => {
@@ -125,6 +132,7 @@ export class MoviesApiService {
 					api_key: this.API_KEY,
 					query: query.trim(),
 					page: page.toString(),
+					...this.getLanguageParams(),
 				},
 			})
 			.pipe(
@@ -179,10 +187,10 @@ export class MoviesApiService {
 		// Fetch movie details AND credits in parallel
 		return forkJoin({
 			movie: this.http.get<any>(`${this.BASE_URL}/movie/${tmdbId}`, {
-				params: { api_key: this.API_KEY },
+				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
 			}),
 			credits: this.http.get<any>(`${this.BASE_URL}/movie/${tmdbId}/credits`, {
-				params: { api_key: this.API_KEY },
+				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
 			}),
 		}).pipe(
 			tap(({ movie, credits }) => {
@@ -284,6 +292,7 @@ export class MoviesApiService {
 					'vote_count.gte': '50', // Lower threshold for more results
 					include_adult: 'false',
 					page: '1',
+					...this.getLanguageParams(),
 				},
 			})
 			.pipe(
@@ -345,7 +354,7 @@ export class MoviesApiService {
 
 		return this.http
 			.get<any>(`${this.BASE_URL}/movie/${tmdbId}/images`, {
-				params: { api_key: this.API_KEY },
+				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
 			})
 			.pipe(
 				tap((response) => {

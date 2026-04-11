@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { MoviesApiService } from '../services/movies-api.service';
 import { FavoritesService } from '../services/favorites.service';
 import { MovieGridComponent } from '../components/movie-grid.component';
@@ -31,15 +32,15 @@ import type { Movie } from '../models';
 @Component({
 	selector: 'app-movies-list',
 	standalone: true,
-	imports: [CommonModule, SearchBarComponent, MovieGridComponent, MovieSliderComponent],
+	imports: [CommonModule, SearchBarComponent, MovieGridComponent, MovieSliderComponent, TranslateModule],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl">
 			<header class="text-center mb-8">
 					<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-2">
-						<i class="ph ph-video text-4xl text-blue-600 dark:text-blue-400" aria-hidden="true"></i> Movie Search
+						<i class="ph ph-video text-4xl text-blue-600 dark:text-blue-400" aria-hidden="true"></i> {{ 'APP.TITLE' | translate }}
 					</h1>
-				<p class="text-gray-600 dark:text-gray-300 text-lg">Find your favorite movies, build a collection of favorites</p>
+				<p class="text-gray-600 dark:text-gray-300 text-lg">{{ 'APP.SUBTITLE' | translate }}</p>
 			</header>
 
 			<!-- Top Rated Slider (only show if we have movies) -->
@@ -47,7 +48,7 @@ import type { Movie } from '../models';
 				<aside aria-label="Top rated movies carousel" class="mb-8">
 					<div class="flex items-center justify-between mb-4 flex-wrap gap-4">
 						<h2 class="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-							<i class="ph ph-medal text-3xl text-amber-500 dark:text-amber-400" aria-hidden="true"></i> Top Rated
+							<i class="ph ph-medal text-3xl text-amber-500 dark:text-amber-400" aria-hidden="true"></i> {{ 'MOVIES.TOP_RATED' | translate }}
 						</h2>
 						<!-- Year Selector -->
 						<select 
@@ -74,19 +75,19 @@ import type { Movie } from '../models';
 			<!-- Sort Controls (show when we have search results) -->
 			@if (apiService.searchResults().length > 0) {
 				<div class="mt-8 flex items-center justify-center gap-2">
-					<span id="sort-label" class="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
+					<span id="sort-label" class="text-sm text-gray-600 dark:text-gray-400">{{ 'MOVIES.SORT_BY' | translate }}:</span>
 					<select 
 						[value]="apiService.sortOption()"
 						(change)="onSortChange($event)"
 						aria-labelledby="sort-label"
 						class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
 					>
-						<option value="year-asc">Year (Oldest) (default)</option>
-						<option value="year-desc">Year (Newest)</option>
-						<option value="rating-desc">Rating (Highest)</option>
-						<option value="rating-asc">Rating (Lowest)</option>
-						<option value="title-asc">Title (A-Z)</option>
-						<option value="title-desc">Title (Z-A)</option>
+						<option value="year-asc">{{ 'MOVIES.SORT_YEAR_OLD' | translate }}</option>
+						<option value="year-desc">{{ 'MOVIES.SORT_YEAR_NEW' | translate }}</option>
+						<option value="rating-desc">{{ 'MOVIES.SORT_RATING_HIGH' | translate }}</option>
+						<option value="rating-asc">{{ 'MOVIES.SORT_RATING_LOW' | translate }}</option>
+						<option value="title-asc">{{ 'MOVIES.SORT_TITLE_AZ' | translate }}</option>
+						<option value="title-desc">{{ 'MOVIES.SORT_TITLE_ZA' | translate }}</option>
 					</select>
 				</div>
 			}
@@ -95,7 +96,7 @@ import type { Movie } from '../models';
 			@if (apiService.isLoading()) {
 				<div role="status" aria-live="polite" class="text-center p-8 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md my-4">
 					<p class="text-blue-600 dark:text-blue-400 text-lg">
-						<i class="ph ph-spinner animate-spin text-xl align-middle" aria-hidden="true"></i> Searching for movies...
+						<i class="ph ph-spinner animate-spin text-xl align-middle" aria-hidden="true"></i> {{ 'APP.SEARCHING' | translate }}
 					</p>
 				</div>
 			}
@@ -105,7 +106,7 @@ import type { Movie } from '../models';
 				<div class="bg-red-50 dark:bg-red-900/20 border border-red-500 text-red-700 dark:text-red-400 p-4 rounded-lg shadow-md my-4">
 					<p class="mb-4">{{ apiService.error() }}</p>
 					<button (click)="onRetry()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-						<i class="ph ph-arrow-clockwise mr-2" aria-hidden="true"></i>Try Again
+						<i class="ph ph-arrow-clockwise mr-2" aria-hidden="true"></i>{{ 'APP.TRY_AGAIN' | translate }}
 					</button>
 				</div>
 			}
@@ -121,7 +122,7 @@ import type { Movie } from '../models';
 
 			<!-- Favorites Badge -->
 			<div class="text-center p-4 text-gray-600 dark:text-gray-400 text-sm mt-8">
-				<i class="ph ph-heart text-lg align-middle text-red-500" aria-hidden="true"></i> {{ favService.favoriteCount() }} favorite(s)
+				<i class="ph ph-heart text-lg align-middle text-red-500" aria-hidden="true"></i> {{ favService.favoriteCount() }} {{ 'MOVIES.FAVORITE_COUNT' | translate }}
 			</div>
 		</div>
 	`,

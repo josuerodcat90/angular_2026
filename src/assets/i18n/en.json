@@ -1,0 +1,91 @@
+{
+  "APP": {
+    "TITLE": "Movie Search",
+    "SUBTITLE": "Find your favorite movies, build a collection of favorites",
+    "SEARCH": "Search movies...",
+    "LOADING": "Loading...",
+    "SEARCHING": "Searching for movies...",
+    "TRY_AGAIN": "Try Again",
+    "ERROR": "An error occurred",
+    "NO_RESULTS": "No results found"
+  },
+  "NAV": {
+    "MOVIES": "Movies",
+    "FAVORITES": "Favorites"
+  },
+  "MOVIES": {
+    "TOP_RATED": "Top Rated",
+    "SEARCH": "Search",
+    "YEAR": "Year",
+    "RATING": "Rating",
+    "SORT_BY": "Sort by",
+    "TITLE": "Title",
+    "RELEASE_DATE": "Release date",
+    "POPULARITY": "Popularity",
+    "VOTE_COUNT": "Vote count",
+    "ASCENDING": "Ascending",
+    "DESCENDING": "Descending",
+    "SORT_YEAR_OLD": "Year (Oldest)",
+    "SORT_YEAR_NEW": "Year (Newest)",
+    "SORT_RATING_HIGH": "Rating (Highest)",
+    "SORT_RATING_LOW": "Rating (Lowest)",
+    "SORT_TITLE_AZ": "Title (A-Z)",
+    "SORT_TITLE_ZA": "Title (Z-A)",
+    "FAVORITE_COUNT": "favorite(s)"
+  },
+  "DETAILS": {
+    "OVERVIEW": "Overview",
+    "SCENES": "Scenes",
+    "CAST": "Cast",
+    "BACK": "Back",
+    "BACK_TO_SEARCH": "Back to Search",
+    "LOADING_DETAILS": "Loading details...",
+    "ADD_FAVORITES": "Add to Favorites",
+    "REMOVE_FAVORITES": "Remove from Favorites",
+    "FAVORITED": "Added",
+    "CLOSE": "Close",
+    "CLOSE_GALLERY": "Close gallery",
+    "MOVIE_DETAILS": "Movie Details",
+    "PLOT": "Plot",
+    "GENRES": "Genres",
+    "DIRECTOR": "Director",
+    "WRITER": "Writer",
+    "ADDITIONAL_INFO": "Additional Info",
+    "RELEASE_DATE": "Release Date",
+    "RUNTIME": "Runtime",
+    "IMDB": "IMDb ID",
+    "BOX_OFFICE": "Box Office",
+    "WEBSITE": "Website",
+    "NO_CREW": "No crew information available"
+  },
+  "FAVORITES": {
+    "TITLE": "My Favorites",
+    "SUBTITLE": "Your personal collection of favorite movies",
+    "EMPTY": "No favorites yet",
+    "ADD": "Add to favorites",
+    "REMOVE": "Remove from favorites",
+    "COUNT": "movie(s) in your collection",
+    "START_ADDING": "Start adding movies to your favorites from the search page!",
+    "SORT_DEFAULT": "Default (added order)",
+    "SORT_TITLE_AZ": "Title (A-Z)",
+    "SORT_TITLE_ZA": "Title (Z-A)",
+    "SORT_YEAR_NEW": "Year (Newest)",
+    "SORT_YEAR_OLD": "Year (Oldest)",
+    "SORT_RATING_HIGH": "Rating (Highest)",
+    "SORT_RATING_LOW": "Rating (Lowest)"
+  },
+  "THEME": {
+    "LIGHT": "Light mode",
+    "DARK": "Dark mode"
+  },
+  "LANG": {
+    "SPANISH": "Español",
+    "ENGLISH": "English"
+  },
+  "SEARCH_BAR": {
+    "LABEL": "Search movies:",
+    "PLACEHOLDER": "e.g. Inception, Avatar...",
+    "CLEAR": "Clear search",
+    "ERROR": "Enter a movie title (at least 1 character)"
+  }
+}

@@ -1,7 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ThemeService } from '../services/theme.service';
+import { LanguageService } from '../services/language.service';
 
 /**
  * AppHeader — Navigation bar with theme toggle
@@ -10,7 +12,7 @@ import { ThemeService } from '../services/theme.service';
 @Component({
 	selector: 'app-header',
 	standalone: true,
-	imports: [CommonModule, RouterLink, RouterLinkActive],
+	imports: [CommonModule, RouterLink, RouterLinkActive, TranslateModule],
 	template: `
 		<header class="sticky top-0 z-100 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 py-4 shadow-md">
 			<div class="max-w-[1400px] mx-auto px-8 flex items-center justify-between gap-8">
@@ -29,13 +31,26 @@ import { ThemeService } from '../services/theme.service';
 						routerLinkActive="active"
 						[attr.aria-current]="isActive(['/', 'movies']) ? 'page' : null"
 						class="nav-link"
-					>Movies</a>
+					>{{ 'NAV.MOVIES' | translate }}</a>
 					<a [routerLink]="['/', 'favorites']" 
 						routerLinkActive="active"
 						[attr.aria-current]="isActive(['/', 'favorites']) ? 'page' : null"
 						class="nav-link"
-					>Favorites</a>
+					>{{ 'NAV.FAVORITES' | translate }}</a>
 				</nav>
+
+<!-- Language Selector -->
+			<select
+				(change)="changeLanguage($any($event.target).value)"
+				[attr.aria-label]="'Select language'"
+				class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 cursor-pointer text-sm font-medium"
+			>
+				@for (lang of availableLanguages(); track lang.code) {
+					<option [value]="lang.code" [selected]="lang.code === currentLanguage()">
+						{{ lang.name }}
+					</option>
+				}
+			</select>
 
 <!-- Theme Toggle -->
 			<button
@@ -96,7 +111,21 @@ import { ThemeService } from '../services/theme.service';
 })
 export class AppHeaderComponent {
 	private readonly themeService = inject(ThemeService);
+	private readonly languageService = inject(LanguageService);
 	private readonly router = inject(Router);
+
+	// Language methods
+	availableLanguages(): { code: string; name: string }[] {
+		return this.languageService.getAvailableLanguages();
+	}
+
+	currentLanguage(): string {
+		return this.languageService.getLanguage();
+	}
+
+	changeLanguage(lang: string): void {
+		this.languageService.setLanguage(lang);
+	}
 
 	toggleTheme(event: MouseEvent): void {
 		const rect = (event.target as HTMLElement).getBoundingClientRect();

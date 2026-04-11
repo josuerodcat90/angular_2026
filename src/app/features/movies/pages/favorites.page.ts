@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { FavoritesService, SortOption } from '../services/favorites.service';
 import { MovieGridComponent } from '../components/movie-grid.component';
 
@@ -19,34 +20,34 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 @Component({
 	selector: 'app-favorites-page',
 	standalone: true,
-	imports: [CommonModule, MovieGridComponent],
+	imports: [CommonModule, MovieGridComponent, TranslateModule],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
 			<header class="text-center mb-6">
 				<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-2">
-					<i class="ph ph-heart text-4xl text-red-500 dark:text-red-400" aria-hidden="true"></i> My Favorites
+					<i class="ph ph-heart text-4xl text-red-500 dark:text-red-400" aria-hidden="true"></i> {{ 'FAVORITES.TITLE' | translate }}
 				</h1>
-				<p class="text-gray-600 dark:text-gray-300 text-lg">Your personal collection of favorite movies</p>
+				<p class="text-gray-600 dark:text-gray-300 text-lg">{{ 'FAVORITES.SUBTITLE' | translate }}</p>
 			</header>
 
 			<!-- Sort Controls -->
 			@if (favService.favorites().length > 0) {
 				<div class="flex items-center justify-center mb-4 gap-2">
-					<span id="fav-sort-label" class="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
+					<span id="fav-sort-label" class="text-sm text-gray-600 dark:text-gray-400">{{ 'MOVIES.SORT_BY' | translate }}:</span>
 					<select 
 						[value]="favService.sortOption()"
 						(change)="onSortChange($event)"
 						aria-labelledby="fav-sort-label"
 						class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
-						<option value="none">Default (added order)</option>
-						<option value="title-asc">Title (A-Z)</option>
-						<option value="title-desc">Title (Z-A)</option>
-						<option value="year-desc">Year (Newest)</option>
-						<option value="year-asc">Year (Oldest)</option>
-						<option value="rating-desc">Rating (Highest)</option>
-						<option value="rating-asc">Rating (Lowest)</option>
+						<option value="none">{{ 'FAVORITES.SORT_DEFAULT' | translate }}</option>
+						<option value="title-asc">{{ 'FAVORITES.SORT_TITLE_AZ' | translate }}</option>
+						<option value="title-desc">{{ 'FAVORITES.SORT_TITLE_ZA' | translate }}</option>
+						<option value="year-desc">{{ 'FAVORITES.SORT_YEAR_NEW' | translate }}</option>
+						<option value="year-asc">{{ 'FAVORITES.SORT_YEAR_OLD' | translate }}</option>
+						<option value="rating-desc">{{ 'FAVORITES.SORT_RATING_HIGH' | translate }}</option>
+						<option value="rating-asc">{{ 'FAVORITES.SORT_RATING_LOW' | translate }}</option>
 					</select>
 				</div>
 			}
@@ -55,13 +56,13 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 			@if (favService.favorites().length === 0) {
 				<div class="text-center p-8 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-md">
 					<i class="ph ph-film-slate text-7xl text-gray-400 dark:text-gray-500 mb-4 block" aria-hidden="true"></i>
-					<h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2">No favorites yet</h2>
-					<p class="text-gray-600 dark:text-gray-400 mb-6">Start adding movies to your favorites from the search page!</p>
+					<h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2">{{ 'FAVORITES.EMPTY' | translate }}</h2>
+					<p class="text-gray-600 dark:text-gray-400 mb-6">{{ 'FAVORITES.START_ADDING' | translate }}</p>
 					<a 
 						href="/movies" 
 						class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all hover:-translate-y-1 hover:shadow-lg"
 					>
-						<i class="ph ph-magnifying-glass mr-2" aria-hidden="true"></i>Search Movies
+						<i class="ph ph-magnifying-glass mr-2" aria-hidden="true"></i>{{ 'NAV.MOVIES' | translate }}
 					</a>
 				</div>
 			}
@@ -75,7 +76,7 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 				/>
 
 				<div class="text-center p-4 text-gray-600 dark:text-gray-400 text-sm mt-8">
-					<i class="ph ph-heart text-lg align-middle text-red-500" aria-hidden="true"></i> {{ favService.favorites().length }} movie(s) in your collection
+					<i class="ph ph-heart text-lg align-middle text-red-500" aria-hidden="true"></i> {{ favService.favorites().length }} {{ 'FAVORITES.COUNT' | translate }}
 				</div>
 			}
 		</div>
