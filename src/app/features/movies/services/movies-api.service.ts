@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError, forkJoin } from 'rxjs';
-import { tap, catchError, finalize } from 'rxjs/operators';
+import { tap, catchError, finalize, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { OmdbMovie, OmdbSearchResponse, Movie } from '../models/movie.model';
 import { LanguageService } from '../../../services/language.service';
@@ -38,6 +38,39 @@ export class MoviesApiService {
 	// Helper to get language params for TMDB API
 	private getLanguageParams(): { [key: string]: string } {
 		return { language: this.languageService.getTmdbLanguage() };
+	}
+
+	// Transform TMDB response to our Movie model
+	private transformMovie(movie: any, credits: any): Movie {
+		const director =
+			credits?.crew
+				?.filter((p: any) => p.job === 'Director')
+				.map((p: any) => p.name)
+				.join(', ') || 'N/A';
+
+		const actors =
+			credits?.cast
+				?.slice(0, 5)
+				.map((p: any) => p.name)
+				.join(', ') || 'N/A';
+
+		return {
+			Title: movie.title || 'N/A',
+			Year: movie.release_date?.split('-')[0] || 'N/A',
+			Released: movie.release_date || 'N/A',
+			imdbID: `tmdb_${movie.id}`,
+			Type: 'movie',
+			Poster: movie.poster_path ? `${this.IMAGE_BASE}${movie.poster_path}` : 'N/A',
+			Response: 'True',
+			Plot: movie.overview || 'N/A',
+			Genre: movie.genres?.map((g: any) => g.name).join(', ') || 'N/A',
+			Runtime: movie.runtime ? `${movie.runtime} min` : 'N/A',
+			Rated: movie.adult === true ? 'NC-17' : 'N/A',
+			Director: director,
+			Actors: actors,
+			voteAverage: movie.vote_average || 0,
+			voteCount: movie.vote_count || 0,
+		};
 	}
 
 	// Sorted search results computed
@@ -193,52 +226,12 @@ export class MoviesApiService {
 				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
 			}),
 		}).pipe(
-			tap(({ movie, credits }) => {
-				if (movie && movie.id) {
-					// Extract director from credits.crew
-					const director =
-						credits.crew
-							?.filter((p: any) => p.job === 'Director')
-							.map((p: any) => p.name)
-							.join(', ') || 'N/A';
-
-					// Extract top 5 actors from credits.cast
-					const actors =
-						credits.cast
-							?.slice(0, 5)
-							.map((p: any) => p.name)
-							.join(', ') || 'N/A';
-
-					// Transform TMDb response to our Movie model
-					const movieData: Movie = {
-						// Basic info
-						Title: movie.title || 'N/A',
-						Year: movie.release_date?.split('-')[0] || 'N/A',
-						Released: movie.release_date || 'N/A',
-						imdbID: `tmdb_${movie.id}`,
-						Type: 'movie',
-						Poster: movie.poster_path ? `${this.IMAGE_BASE}${movie.poster_path}` : 'N/A',
-						Response: 'True',
-
-						// Extended info from TMDb
-						Plot: movie.overview || 'N/A',
-						Genre: movie.genres?.map((g: any) => g.name).join(', ') || 'N/A',
-						Runtime: movie.runtime ? `${movie.runtime} min` : 'N/A',
-						Rated: movie.adult === true ? 'NC-17' : 'N/A',
-
-						// 📌 Credits from /credits endpoint
-						Director: director,
-						Actors: actors,
-
-						// 📌 Ratings from /movie/{id} endpoint
-						voteAverage: movie.vote_average || 0,
-						voteCount: movie.vote_count || 0,
-					};
-					this.movieDetail.set(movieData);
-					this.error.set(null);
-				} else {
-					throw new Error('Invalid movie data');
-				}
+			map(({ movie, credits }) => {
+				// Transform TMDb response to our Movie model
+				const movieData: Movie = this.transformMovie(movie, credits);
+				this.movieDetail.set(movieData);
+				this.error.set(null);
+				return movieData;
 			}),
 			catchError((err) => {
 				const errorMsg = err?.error?.status_message || err?.message || 'Failed to load movie details';
@@ -377,20 +370,35 @@ export class MoviesApiService {
 			return of([]);
 		}
 
+		console.log('[API] Refreshing favorites:', favoriteIds);
 		this.isLoading.set(true);
 		this.error.set(null);
 
 		// Create parallel requests for all favorites
-		const requests = favoriteIds.map((id) => this.getMovieDetail(id));
+		const requests = favoriteIds.map((id) => {
+			console.log('[API] Fetching:', id);
+			return this.getMovieDetail(id).pipe(
+				tap({
+					next: (movie) => console.log('[API] Got:', movie?.Title, movie?.imdbID),
+					error: (err) => console.error('[API] Error for', id, err),
+				}),
+			);
+		});
 
 		return forkJoin(requests).pipe(
-			tap((movies) => {
-				// Filter out failed requests (getMovieDetail already sets error on failure)
-				const validMovies = movies.filter((m) => m && m.imdbID);
-				this.isLoading.set(false);
+			tap({
+				next: (movies) => {
+					console.log('[API] All movies:', movies?.length);
+					this.isLoading.set(false);
+				},
+				error: (err) => {
+					console.error('[API] ForkJoin error:', err);
+					this.error.set('Failed to load favorites');
+					this.isLoading.set(false);
+				},
 			}),
 			catchError((err) => {
-				console.error('Failed to refresh favorites:', err);
+				console.error('[API] Catch error:', err);
 				this.error.set('Failed to load favorites');
 				this.isLoading.set(false);
 				return of([]);

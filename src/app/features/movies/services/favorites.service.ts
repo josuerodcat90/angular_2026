@@ -124,15 +124,19 @@ export class FavoritesService {
 
 		// Listen to language changes and refresh favorites data
 		if (this.isBrowser) {
-			this.languageService.languageChanged$.subscribe(() => {
+			this.languageService.languageChanged$.subscribe((lang) => {
+				console.log('[FAV] Language changed to:', lang, '- refreshing...');
 				this.refreshFavoritesData();
 			});
 
 			// Initial load: if we have favorites but no data, fetch them once
-			// Using setTimeout to avoid calling during constructor
 			const ids = this.favoriteIdsSignal();
+			console.log('[FAV] Loaded IDs:', ids.length, ids);
 			if (ids.length > 0) {
-				setTimeout(() => this.refreshFavoritesData(), 0);
+				setTimeout(() => {
+					console.log('[FAV] Starting refresh...');
+					this.refreshFavoritesData();
+				}, 100);
 			}
 		}
 	}
@@ -149,23 +153,23 @@ export class FavoritesService {
 			return;
 		}
 
+		console.log(
+			'[FAV] Refreshing with IDs:',
+			ids.map((f) => f.tmdbId),
+		);
 		this.isRefreshing.set(true);
 		this.moviesApi.refreshFavorites(ids.map((f) => f.tmdbId)).subscribe({
 			next: (newMovies) => {
+				console.log('[FAV] Got movies:', newMovies?.length, newMovies);
 				const validNewMovies = newMovies.filter((m) => m && m.imdbID);
 
-				// Get existing IDs that are already in the data signal
-				const existingData = this.favoritesDataSignal();
-				const existingIds = new Set(existingData.map((m) => m.imdbID));
-
-				// Merge: keep existing + add new
-				const merged = [...existingData, ...validNewMovies.filter((m) => !existingIds.has(m.imdbID))];
-
-				this.favoritesDataSignal.set(merged);
+				// REPLACE all data (not merge) - this updates to new language
+				console.log('[FAV] Setting fresh data:', validNewMovies.length);
+				this.favoritesDataSignal.set(validNewMovies);
 				this.isRefreshing.set(false);
 			},
 			error: (err) => {
-				console.error('Failed to refresh favorites:', err);
+				console.error('[FAV] Failed to refresh favorites:', err);
 				this.isRefreshing.set(false);
 			},
 		});
@@ -265,18 +269,34 @@ export class FavoritesService {
 			}
 
 			const parsed = JSON.parse(stored);
-			// Handle both old format (array of strings) and new format (array of FavoriteId)
-			if (Array.isArray(parsed)) {
-				// Check if old format (just strings)
-				if (parsed.length > 0 && typeof parsed[0] === 'string') {
-					// Migrate from old format
-					return parsed.map((id: string) => ({
-						tmdbId: id.startsWith('tmdb_') ? id : `tmdb_${id}`,
-						addedAt: Date.now(),
-					}));
-				}
+			if (!Array.isArray(parsed) || parsed.length === 0) {
+				return [];
+			}
+
+			// Handle various formats:
+			// 1. Old format: array of full Movie objects
+			if (parsed[0] && parsed[0].imdbID) {
+				// Old format: Movie objects - migrate to FavoriteId
+				const ids = parsed.map((m: Movie) => ({
+					tmdbId: m.imdbID?.startsWith('tmdb_') ? m.imdbID : `tmdb_${m.imdbID}`,
+					addedAt: Date.now(),
+				}));
+				// Save in new format after migration
+				setTimeout(() => this.persistToStorage(ids), 0);
+				return ids;
+			}
+			// 2. Format: array of strings (old IDs)
+			if (typeof parsed[0] === 'string') {
+				return parsed.map((id: string) => ({
+					tmdbId: id.startsWith('tmdb_') ? id : `tmdb_${id}`,
+					addedAt: Date.now(),
+				}));
+			}
+			// 3. New format: FavoriteId objects
+			if (parsed[0] && parsed[0].tmdbId) {
 				return parsed;
 			}
+
 			return [];
 		} catch (error) {
 			if (error instanceof SyntaxError) {

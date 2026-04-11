@@ -73,6 +73,7 @@ export class LanguageService {
 		this.translate.use(lang);
 
 		// Emit language change for FavoritesService
+		console.log('[LANG] Emitting language change:', lang);
 		this.languageChanged$.next(lang);
 
 		if (this.isBrowser) {
