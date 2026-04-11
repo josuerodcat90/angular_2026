@@ -366,4 +366,35 @@ export class MoviesApiService {
 				}),
 			);
 	}
+
+	/**
+	 * Refresh all favorites with current language
+	 * Fetches full data for all favorite IDs in parallel
+	 * Called by FavoritesPage when language changes
+	 */
+	refreshFavorites(favoriteIds: string[]): Observable<Movie[]> {
+		if (!favoriteIds || favoriteIds.length === 0) {
+			return of([]);
+		}
+
+		this.isLoading.set(true);
+		this.error.set(null);
+
+		// Create parallel requests for all favorites
+		const requests = favoriteIds.map((id) => this.getMovieDetail(id));
+
+		return forkJoin(requests).pipe(
+			tap((movies) => {
+				// Filter out failed requests (getMovieDetail already sets error on failure)
+				const validMovies = movies.filter((m) => m && m.imdbID);
+				this.isLoading.set(false);
+			}),
+			catchError((err) => {
+				console.error('Failed to refresh favorites:', err);
+				this.error.set('Failed to load favorites');
+				this.isLoading.set(false);
+				return of([]);
+			}),
+		);
+	}
 }

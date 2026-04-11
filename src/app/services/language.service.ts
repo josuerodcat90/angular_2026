@@ -1,6 +1,7 @@
 import { Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { isPlatformBrowser } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
 
 /**
  * LanguageService - Handles app language with TMDB support
@@ -23,6 +24,9 @@ export class LanguageService {
 
 	// Signal for current language
 	languageSignal = signal<string>(this.defaultLang);
+
+	// Observable for language changes (for FavoritesService)
+	languageChanged$ = new BehaviorSubject<string>(this.defaultLang);
 
 	constructor() {
 		// Load saved language or detect browser language
@@ -64,8 +68,12 @@ export class LanguageService {
 			return;
 		}
 
+		const previousLang = this.languageSignal();
 		this.languageSignal.set(lang);
 		this.translate.use(lang);
+
+		// Emit language change for FavoritesService
+		this.languageChanged$.next(lang);
 
 		if (this.isBrowser) {
 			localStorage.setItem('language', lang);
