@@ -1,19 +1,19 @@
-# 🎬 Movie Search - Angular Dashboard
+# Movie Search - Angular Dashboard
 
-A modern movie search and discovery dashboard built with Angular 21, featuring a sleek UI with Tailwind CSS, interactive image modals, and a premium look & feel.
+A modern movie search and discovery dashboard built with Angular 21, featuring a sleek UI with Tailwind CSS, interactive image modals, skeleton loaders for better UX, and premium look & feel.
 
 ![Angular](https://img.shields.io/badge/Angular-21.1.0-DD0031?style=flat&logo=angular)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?style=flat&logo=typescript)
 ![Tailwind](https://img.shields.io/badge/Tailwind-4.0-06B6D4?style=flat&logo=tailwindcss)
 ![Bun](https://img.shields.io/badge/Bun-1.3.9-000000?style=flat&logo=bun)
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # 1. Install dependencies
 bun install
 
-# 2. Configure API keys (see below)
+# 2. Configure API key (see below)
 # Create src/environments/environment.ts with your TMDb API key
 
 # 3. Start development server
@@ -22,30 +22,28 @@ bun run start
 # 4. Open http://localhost:4200
 ```
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 - **Node.js**: 18+
 - **Bun**: Latest (recommended) or npm/yarn
 - **TMDb API Key**: Free at [themoviedb.org](https://www.themoviedb.org/settings/api)
 
-## 🔑 API Configuration
+## API Configuration
 
-1. Get your free TMDb API key at [themoviedb.org/settings/api](https://wwwoviedb.org/settings/api)
+1. Get your free TMDb API key at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api)
 
 2. Open `src/environments/environment.ts` and replace `YOUR_API_KEY_HERE` with your actual key:
 ```typescript
 export const environment = {
   production: false,
-  tmdbApiKey: 'TU_API_KEY_AQUI',  // <-- Tu key aquí
+  tmdbApiKey: 'YOUR_API_KEY_HERE',
   tmdbBaseUrl: 'https://api.themoviedb.org/3',
 };
 ```
 
 > **Note**: Never commit your actual API key to git. Add `src/environments/environment.ts` to `.gitignore` if needed.
 
-
-
-## 📦 Available Scripts
+## Available Scripts
 
 | Command | Description |
 |---------|-------------|
@@ -56,75 +54,88 @@ export const environment = {
 | `bun run format` | Format code with Biome |
 | `bun run serve:ssr` | Serve SSR production build |
 
-## 🎯 Features
+## Features
 
 - **Movie Search**: Real-time search with debounce, search history persistence
 - **Sorting**: Sort results by year, rating, or title (ascending/descending)
 - **Top Rated Slider**: Horizontal slider showing top rated movies from current year (configurable)
 - **Movie Details**: Full movie information with frosted glass hero design
 - **Scenes Gallery**: Browse up to 20 backdrops with a pill showing additional images (+X)
-- **Image Modal**: Interactive modal with keyboard navigation (←, →, Esc), smooth fade transitions, and body scroll lock
-- **Favorites**: Save favorite movies with localStorage persistence
+- **Image Modal**: Interactive modal with keyboard navigation (arrow keys, Esc), smooth fade transitions, and body scroll lock
+- **Favorites**: Save favorite movies with localStorage persistence, supports i18n
 - **Dark Mode**: Toggle between light and dark themes with system preference detection
 - **Theme Transitions**: Smooth polygon gradient animation when switching themes (View Transitions API)
+- **i18n Support**: Full English/Spanish localization using ngx-translate
+- **Language Selector**: Custom dropdown component for language switching
+- **Skeleton Loaders**: Beautiful loading placeholders that match component dimensions during data fetch
 - **SSR Support**: Server-side rendering for better SEO and performance
 - **Responsive**: Fully responsive design for mobile, tablet, and desktop
 - **Phosphor Icons**: Premium icon set for a polished UI
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Framework**: Angular 21 (Standalone Components, Signals, Effects)
 - **Styling**: Tailwind CSS v4 + SCSS for animations
 - **State**: Angular Signals + Services (no external libraries)
 - **API**: TMDb (The Movie Database) v3
+- **Internationalization**: @ngx-translate/core
 - **Icons**: Phosphor Icons
 - **Build**: Angular CLI + Bun
 - **Linting**: Biome
 - **Testing**: Vitest
 - **SSR**: Angular SSR with hydration
 
-## 📚 External Libraries
+## External Libraries
 
 | Library | Version | Description |
 |---------|---------|-------------|
 | [Phosphor Icons](https://phosphoricons.com/) | 2.1.2 | Premium icon family for polished UI |
 | [Tailwind CSS](https://tailwindcss.com/) | 4.2.2 | Utility-first CSS framework |
+| [ngx-translate](https://github.com/ngx-translate/core) | 17.0+ | Internationalization (i18n) for Angular |
 | [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) | Native | Native browser API for smooth theme switch animations |
 | [TMDb API](https://www.themoviedb.org/) | v3 | The Movie Database for movie data |
 
-> **Note**: Most dependencies are Angular ecosystem packages. This project uses Angular Signals for state management—no external state management libraries (NgRx, RxJS, etc.) required.
+> **Note**: This project uses Angular Signals for state management—no external state management libraries (NgRx, RxJS, etc.) required.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── components/          # Shared components
-│   │   └── app-header.component.ts
+│   ├── components/              # Shared components
+│   │   ├── app-header.component.ts
+│   │   └── shared/
+│   │       ├── custom-select/    # Custom dropdown component
+│   │       └── skeleton/        # Skeleton loaders
 │   ├── features/
 │   │   └── movies/
-│   │       ├── components/   # Movie-specific components
+│   │       ├── components/       # Movie-specific components
 │   │       │   ├── movie-card.component.ts
 │   │       │   ├── movie-grid.component.ts
 │   │       │   ├── movie-slider.component.ts
 │   │       │   └── search-bar.component.ts
-│   │       ├── models/      # TypeScript interfaces
-│   │       ├── pages/       # Page components
+│   │       ├── models/           # TypeScript interfaces
+│   │       ├── pages/           # Page components
 │   │       │   ├── favorites.page.ts
 │   │       │   ├── movie-detail.page.ts
 │   │       │   └── movies-list.page.ts
-│   │       └── services    # Business logic
+│   │       └── services         # Business logic
 │   │           ├── favorites.service.ts
 │   │           └── movies-api.service.ts
-│   ├── services/            # App-wide services
-│   │   └── theme.service.ts
-│   ├── app.config.ts        # App configuration
-│   └── app.routes.ts        # Routing configuration
-├── environments/            # Environment config
-└── styles.scss              # Global styles + Tailwind
+│   ├── services/                 # App-wide services
+│   │   ├── theme.service.ts
+│   │   └── language.service.ts
+│   ├── app.config.ts             # App configuration
+│   └── app.routes.ts            # Routing configuration
+├── assets/
+│   └── i18n/                    # Translation files
+│       ├── en.json
+│       └── es.json
+├── environments/                 # Environment config
+└── styles.scss                  # Global styles + Tailwind
 ```
 
-## 🎨 UI/UX Highlights
+## UI/UX Highlights
 
 ### Tailwind Integration
 The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
@@ -133,11 +144,25 @@ The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
 - Gradient overlays and glassmorphism
 - Custom animations and transitions
 
+### Skeleton Loaders
+- Three reusable skeleton components: Card, Slider, Detail
+- Match exact dimensions of actual components (300px poster, 140x210px slider items)
+- Dark mode support with `dark:bg-gray-700`
+- Accessibility attributes (role="status", aria-live="polite")
+- OnPush change detection for optimal performance
+
 ### Movie Detail Page
 - Hero section with frosted glass background image
 - Genre tags with color-coded badges
 - Interactive Scenes gallery with image modal
 - Rating cards with TMDb score visualization
+
+### Custom Select Component
+- Fully custom dropdown replacing native HTML selects
+- Searchable options
+- i18n support for labels
+- Smooth animations
+- Consistent styling across light/dark modes
 
 ### Search & Filtering
 - Auto-search with debounce (300ms)
@@ -153,22 +178,31 @@ The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
 - Image counter display (e.g., "3 / 20")
 
 ### Theme Toggle Animation
-- Uses the native [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API)
+- Uses the native View Transitions API
 - Polygon gradient effect that expands from top-left corner
 - Smooth 1.5s animation with custom easing
 - No flash between theme switches
 - Fallback for browsers without View Transitions support
 
-## 🔍 Key Files
+### Internationalization (i18n)
+- Full English/Spanish support
+- Language persistence in localStorage
+- All UI strings translated
+- Favorites support i18n (stores IDs, fetches with current language)
+
+## Key Files
 
 - **`movies-api.service.ts`**: TMDb API integration with signals for reactive state
 - **`favorites.service.ts`**: localStorage persistence with SSR compatibility guards
 - **`theme.service.ts`**: Dark mode toggle with system preference detection
+- **`language.service.ts`**: i18n language switching with persistence
 - **`movie-detail.page.ts`**: Main detail page with frosted glass hero, scenes gallery, and image modal
 - **`search-bar.component.ts`**: Search input with clear button and debounce
 - **`movies-list.page.ts`**: Home page with search persistence and sorting
+- **`custom-select.component.ts`**: Custom dropdown for language and sort selectors
+- **`skeleton-*.component.ts`**: Loading placeholders for better UX
 
-## 📝 Development Notes
+## Development Notes
 
 ### SSR Compatibility
 Services using `localStorage` or `document` must check for browser environment:
@@ -191,7 +225,7 @@ if (typeof document !== 'undefined') {
 - Tailwind `transition-*` classes for hover states
 - Angular view transitions via `withViewTransitions()`
 
-## 📄 License
+## License
 
 MIT - Built for learning and demonstration purposes
 

@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ThemeService } from '../services/theme.service';
 import { LanguageService } from '../services/language.service';
 import { CustomSelectComponent } from '../shared/components/custom-select/custom-select.component';

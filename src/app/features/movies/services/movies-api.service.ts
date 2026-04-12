@@ -357,7 +357,7 @@ export class MoviesApiService {
 				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
 			})
 			.pipe(
-				tap((response) => {
+				tap(() => {
 					// Just return the response, caller handles the data
 				}),
 				catchError((err) => {

@@ -1,6 +1,5 @@
 import {
 	ChangeDetectionStrategy,
-	ChangeDetectorRef,
 	Component,
 	Input,
 	Output,
@@ -166,7 +165,6 @@ export class MovieCardComponent implements OnInit, OnChanges {
 
 	constructor(
 		private router: Router,
-		private cdr: ChangeDetectorRef,
 		private decimalPipe: DecimalPipe,
 	) {
 		this.posterUrl = this.PLACEHOLDER_POSTER;

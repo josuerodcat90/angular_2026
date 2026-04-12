@@ -4,6 +4,7 @@ import { CommonModule, Location } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { MoviesApiService } from '../services/movies-api.service';
 import { FavoritesService } from '../services/favorites.service';
+import { SkeletonDetailComponent } from '../../../shared/components/skeleton/skeleton-detail.component';
 
 /**
  * MovieDetailPage — Full movie information display
@@ -21,7 +22,7 @@ import { FavoritesService } from '../services/favorites.service';
 @Component({
 	selector: 'app-movie-detail',
 	standalone: true,
-	imports: [CommonModule, RouterLink, TranslateModule],
+	imports: [CommonModule, RouterLink, TranslateModule, SkeletonDetailComponent],
 	template: `
 		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
 			<!-- Header -->
@@ -38,10 +39,7 @@ import { FavoritesService } from '../services/favorites.service';
 
 						<!-- Loading state -->
 			@if (apiService.isLoading()) {
-				<div role="status" aria-live="polite" class="flex flex-col items-center justify-center p-12 bg-gray-200 dark:bg-gray-800 rounded-xl">
-					<i class="ph ph-spinner animate-spin text-5xl text-blue-600 dark:text-blue-400 mb-4" aria-hidden="true"></i>
-					<p class="text-gray-600 dark:text-gray-400 text-lg">{{ 'DETAILS.LOADING_DETAILS' | translate }}</p>
-				</div>
+				<app-skeleton-detail />
 			}
 
 			<!-- Error state -->
