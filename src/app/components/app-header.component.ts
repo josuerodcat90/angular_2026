@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ThemeService } from '../services/theme.service';
 import { LanguageService } from '../services/language.service';
+import { CustomSelectComponent } from '../shared/components/custom-select/custom-select.component';
 
 /**
  * AppHeader — Navigation bar with theme toggle
@@ -12,7 +13,7 @@ import { LanguageService } from '../services/language.service';
 @Component({
 	selector: 'app-header',
 	standalone: true,
-	imports: [CommonModule, RouterLink, RouterLinkActive, TranslateModule],
+	imports: [CommonModule, RouterLink, RouterLinkActive, TranslateModule, CustomSelectComponent],
 	template: `
 		<header class="sticky top-0 z-100 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 py-4 shadow-md">
 			<div class="max-w-[1400px] mx-auto px-8 flex items-center justify-between gap-8">
@@ -39,20 +40,16 @@ import { LanguageService } from '../services/language.service';
 					>{{ 'NAV.FAVORITES' | translate }}</a>
 				</nav>
 
-<!-- Language Selector -->
-			<select
-				(change)="changeLanguage($any($event.target).value)"
-				[attr.aria-label]="'Select language'"
-				class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 cursor-pointer text-sm font-medium"
-			>
-				@for (lang of availableLanguages(); track lang.code) {
-					<option [value]="lang.code" [selected]="lang.code === currentLanguage()">
-						{{ lang.name }}
-					</option>
-				}
-			</select>
+			<!-- Language Selector -->
+			<app-custom-select
+				[options]="languageOptions"
+				[selectedValue]="currentLanguage()"
+				(valueChange)="changeLanguage($event)"
+				[placeholder]="'LANG.SELECT_LANGUAGE' | translate"
+				[width]="'120px'"
+			/>
 
-<!-- Theme Toggle -->
+			<!-- Theme Toggle -->
 			<button
 				(click)="toggleTheme($event)"
 				[attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
@@ -113,6 +110,16 @@ export class AppHeaderComponent {
 	private readonly themeService = inject(ThemeService);
 	private readonly languageService = inject(LanguageService);
 	private readonly router = inject(Router);
+
+	// Language options for custom select
+	languageOptions: { value: string; label: string }[] = [];
+
+	constructor() {
+		this.languageOptions = this.languageService.getAvailableLanguages().map((lang) => ({
+			value: lang.code,
+			label: lang.name,
+		}));
+	}
 
 	// Language methods
 	availableLanguages(): { code: string; name: string }[] {

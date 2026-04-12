@@ -31,7 +31,10 @@
     "SORT_RATING_LOW": "Rating (Lowest)",
     "SORT_TITLE_AZ": "Title (A-Z)",
     "SORT_TITLE_ZA": "Title (Z-A)",
-    "FAVORITE_COUNT": "favorite(s)"
+    "FAVORITE_COUNT": "favorite(s)",
+    "SELECT_YEAR": "Select year",
+    "SEARCH_YEAR": "Search year...",
+    "SORT_PLACEHOLDER": "Sort by"
   },
   "DETAILS": {
     "OVERVIEW": "Overview",
@@ -80,7 +83,8 @@
   },
   "LANG": {
     "SPANISH": "Español",
-    "ENGLISH": "English"
+    "ENGLISH": "English",
+    "SELECT_LANGUAGE": "Select language"
   },
   "SEARCH_BAR": {
     "LABEL": "Search movies:",

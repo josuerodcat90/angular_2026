@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, effect, OnInit, HostListener } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { MoviesApiService } from '../services/movies-api.service';
 import { FavoritesService } from '../services/favorites.service';
@@ -401,18 +401,24 @@ import { FavoritesService } from '../services/favorites.service';
 export class MovieDetailPage implements OnInit {
 	private route = inject(ActivatedRoute);
 	private router = inject(Router);
+	private location = inject(Location);
 
 	apiService = inject(MoviesApiService);
 	private favoritesService = inject(FavoritesService);
 
-	// Go back - try history first, then default to /movies or /favorites
+	// Go back - use location.back() which relies on browser history
 	goBack(): void {
-		// Check if there's history to go back to
+		// Try to go back using browser history
 		if (window.history.length > 1) {
-			this.router.navigateByUrl('/movies');
+			this.location.back();
 		} else {
-			// Default to favorites if no history
-			this.router.navigate(['/favorites']);
+			// No history, go to home or favorites based on where we came from
+			const referrer = document.referrer;
+			if (referrer?.includes('/favorites')) {
+				this.router.navigate(['/favorites']);
+			} else {
+				this.router.navigate(['/movies']);
+			}
 		}
 	}
 

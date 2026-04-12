@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { MoviesApiService } from '../services/movies-api.service';
 import { FavoritesService } from '../services/favorites.service';
+import { LanguageService } from '../../../services/language.service';
 import { MovieGridComponent } from '../components/movie-grid.component';
 import { SearchBarComponent } from '../components/search-bar.component';
 import { MovieSliderComponent } from '../components/movie-slider.component';
+import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
 import type { Movie } from '../models';
+import { Subscription } from 'rxjs';
 
 /**
  * MoviesListPage — Main search and browse interface
@@ -32,7 +35,14 @@ import type { Movie } from '../models';
 @Component({
 	selector: 'app-movies-list',
 	standalone: true,
-	imports: [CommonModule, SearchBarComponent, MovieGridComponent, MovieSliderComponent, TranslateModule],
+	imports: [
+		CommonModule,
+		SearchBarComponent,
+		MovieGridComponent,
+		MovieSliderComponent,
+		CustomSelectComponent,
+		TranslateModule,
+	],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl">
@@ -51,16 +61,15 @@ import type { Movie } from '../models';
 							<i class="ph ph-medal text-3xl text-amber-500 dark:text-amber-400" aria-hidden="true"></i> {{ 'MOVIES.TOP_RATED' | translate }}
 						</h2>
 						<!-- Year Selector -->
-						<select 
-							[value]="apiService.selectedYear()"
-							(change)="onYearChange($event)"
-							aria-label="Select year for top rated movies"
-							class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-						>
-							@for (year of apiService.availableYears(); track year) {
-								<option [value]="year">{{ year }}</option>
-							}
-						</select>
+						<app-custom-select
+							[options]="yearOptions"
+							[selectedValue]="apiService.selectedYear()"
+							(valueChange)="onYearValueChange($event)"
+							[placeholder]="'MOVIES.SELECT_YEAR' | translate"
+							[searchPlaceholder]="'MOVIES.SEARCH_YEAR' | translate"
+							[enableSearch]="true"
+							[width]="'110px'"
+						/>
 					</div>
 					<app-movie-slider [movies]="apiService.trendingMovies" />
 				</aside>
@@ -76,19 +85,14 @@ import type { Movie } from '../models';
 			@if (apiService.searchResults().length > 0) {
 				<div class="mt-8 flex items-center justify-center gap-2">
 					<span id="sort-label" class="text-sm text-gray-600 dark:text-gray-400">{{ 'MOVIES.SORT_BY' | translate }}:</span>
-					<select 
-						[value]="apiService.sortOption()"
-						(change)="onSortChange($event)"
-						aria-labelledby="sort-label"
-						class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
-					>
-						<option value="year-asc">{{ 'MOVIES.SORT_YEAR_OLD' | translate }}</option>
-						<option value="year-desc">{{ 'MOVIES.SORT_YEAR_NEW' | translate }}</option>
-						<option value="rating-desc">{{ 'MOVIES.SORT_RATING_HIGH' | translate }}</option>
-						<option value="rating-asc">{{ 'MOVIES.SORT_RATING_LOW' | translate }}</option>
-						<option value="title-asc">{{ 'MOVIES.SORT_TITLE_AZ' | translate }}</option>
-						<option value="title-desc">{{ 'MOVIES.SORT_TITLE_ZA' | translate }}</option>
-					</select>
+					<app-custom-select
+						[options]="sortOptions"
+						[selectedValue]="apiService.sortOption()"
+						(valueChange)="onSortValueChange($event)"
+						[placeholder]="'MOVIES.SORT_PLACEHOLDER' | translate"
+						[translateLabels]="true"
+						[width]="'180px'"
+					/>
 				</div>
 			}
 
@@ -127,27 +131,66 @@ import type { Movie } from '../models';
 		</div>
 	`,
 })
-export class MoviesListPage implements OnInit {
+export class MoviesListPage implements OnInit, OnDestroy {
 	/**
 	 * Inject services
 	 */
 	constructor(
 		readonly apiService: MoviesApiService,
 		readonly favService: FavoritesService,
+		private languageService: LanguageService,
 	) {}
 
+	// Options for custom select components
+	yearOptions: { value: number; label: string }[] = [];
+
+	sortOptions = [
+		{ value: 'year-asc', label: 'MOVIES.SORT_YEAR_OLD' },
+		{ value: 'year-desc', label: 'MOVIES.SORT_YEAR_NEW' },
+		{ value: 'rating-desc', label: 'MOVIES.SORT_RATING_HIGH' },
+		{ value: 'rating-asc', label: 'MOVIES.SORT_RATING_LOW' },
+		{ value: 'title-asc', label: 'MOVIES.SORT_TITLE_AZ' },
+		{ value: 'title-desc', label: 'MOVIES.SORT_TITLE_ZA' },
+	];
+
+	private langSubscription?: Subscription;
+
 	ngOnInit() {
+		// Initialize year options from api service
+		this.yearOptions = this.apiService.availableYears().map((year) => ({
+			value: year,
+			label: year.toString(),
+		}));
+
 		// Always reset to current year and reload when entering home
 		this.apiService.resetSelectedYear();
 		this.apiService.getTopRatedFromYear(this.apiService.selectedYear()).subscribe();
+
+		// Subscribe to language changes - reload data when language changes
+		this.langSubscription = this.languageService.languageChanged$.subscribe((lang) => {
+			this.reloadCurrentData();
+		});
+	}
+
+	ngOnDestroy() {
+		this.langSubscription?.unsubscribe();
+	}
+
+	private reloadCurrentData() {
+		// Reload top rated for current year with new language
+		this.apiService.getTopRatedFromYear(this.apiService.selectedYear()).subscribe();
+
+		// Re-run search if there's a pending query
+		const lastQuery = this.apiService.lastSearchQuery();
+		if (lastQuery) {
+			this.apiService.search(lastQuery).subscribe();
+		}
 	}
 
 	/**
-	 * Handle year change from selector
+	 * Handle year change from custom select
 	 */
-	onYearChange(event: Event) {
-		const select = event.target as HTMLSelectElement;
-		const year = parseInt(select.value, 10);
+	onYearValueChange(year: number) {
 		this.apiService.selectedYear.set(year);
 		this.apiService.getTopRatedFromYear(year).subscribe();
 	}
@@ -176,6 +219,13 @@ export class MoviesListPage implements OnInit {
 	onSortChange(event: Event) {
 		const select = event.target as HTMLSelectElement;
 		this.apiService.sortOption.set(select.value);
+	}
+
+	/**
+	 * Handle sort change from custom select
+	 */
+	onSortValueChange(value: string) {
+		this.apiService.sortOption.set(value);
 	}
 
 	/**

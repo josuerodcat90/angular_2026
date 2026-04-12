@@ -31,7 +31,10 @@
     "SORT_RATING_LOW": "Puntuación (Menor)",
     "SORT_TITLE_AZ": "Título (A-Z)",
     "SORT_TITLE_ZA": "Título (Z-A)",
-    "FAVORITE_COUNT": "{{count}} favorito(s)"
+    "FAVORITE_COUNT": "{{count}} favorito(s)",
+    "SELECT_YEAR": "Seleccionar año",
+    "SEARCH_YEAR": "Buscar año...",
+    "SORT_PLACEHOLDER": "Ordenar por"
   },
   "DETAILS": {
     "OVERVIEW": "Sinopsis",
@@ -80,7 +83,8 @@
   },
   "LANG": {
     "SPANISH": "Español",
-    "ENGLISH": "English"
+    "ENGLISH": "English",
+    "SELECT_LANGUAGE": "Seleccionar idioma"
   },
   "SEARCH_BAR": {
     "LABEL": "Buscar películas:",

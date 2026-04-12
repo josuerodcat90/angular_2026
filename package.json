@@ -37,6 +37,8 @@
 		"@angular/ssr": "^21.1.5",
 		"@ng-icons/core": "^33.2.0",
 		"@ng-icons/phosphor-icons": "^33.2.0",
+		"@ngx-translate/core": "^17.0.0",
+		"@ngx-translate/http-loader": "^17.0.0",
 		"@phosphor-icons/web": "^2.1.2",
 		"@tailwindcss/postcss": "^4.2.2",
 		"express": "^5.1.0",

@@ -206,7 +206,7 @@ export class MoviesApiService {
 	 * 1. /movie/{id} — base movie details (overview, genres, runtime, etc.)
 	 * 2. /movie/{id}/credits — cast and crew (director, actors)
 	 */
-	getMovieDetail(id: string): Observable<any> {
+	getMovieDetail(id: string, skipSignalUpdate = false): Observable<any> {
 		if (!id) {
 			return throwError(() => new Error('Movie ID required'));
 		}
@@ -229,14 +229,21 @@ export class MoviesApiService {
 			map(({ movie, credits }) => {
 				// Transform TMDb response to our Movie model
 				const movieData: Movie = this.transformMovie(movie, credits);
-				this.movieDetail.set(movieData);
-				this.error.set(null);
 				return movieData;
+			}),
+			tap((movieData) => {
+				// Only update signal if not skipped (e.g., for favorites refresh)
+				if (!skipSignalUpdate) {
+					this.movieDetail.set(movieData);
+					this.error.set(null);
+				}
 			}),
 			catchError((err) => {
 				const errorMsg = err?.error?.status_message || err?.message || 'Failed to load movie details';
-				this.error.set(errorMsg);
-				this.movieDetail.set(null);
+				if (!skipSignalUpdate) {
+					this.error.set(errorMsg);
+					this.movieDetail.set(null);
+				}
 				return throwError(() => new Error(errorMsg));
 			}),
 			finalize(() => this.isLoading.set(false)),
@@ -370,20 +377,11 @@ export class MoviesApiService {
 			return of([]);
 		}
 
-		console.log('[API] Refreshing favorites:', favoriteIds);
 		this.isLoading.set(true);
 		this.error.set(null);
 
-		// Create parallel requests for all favorites
-		const requests = favoriteIds.map((id) => {
-			console.log('[API] Fetching:', id);
-			return this.getMovieDetail(id).pipe(
-				tap({
-					next: (movie) => console.log('[API] Got:', movie?.Title, movie?.imdbID),
-					error: (err) => console.error('[API] Error for', id, err),
-				}),
-			);
-		});
+		// Create parallel requests for all favorites (skip signal update to avoid interfering with view)
+		const requests = favoriteIds.map((id) => this.getMovieDetail(id, true));
 
 		return forkJoin(requests).pipe(
 			tap({

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { FavoritesService, SortOption } from '../services/favorites.service';
 import { MovieGridComponent } from '../components/movie-grid.component';
+import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
 
 /**
  * FavoritesPage — User's saved movies collection
@@ -20,7 +21,7 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 @Component({
 	selector: 'app-favorites-page',
 	standalone: true,
-	imports: [CommonModule, MovieGridComponent, TranslateModule],
+	imports: [CommonModule, MovieGridComponent, CustomSelectComponent, TranslateModule],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
@@ -35,20 +36,14 @@ import { MovieGridComponent } from '../components/movie-grid.component';
 			@if (favService.favorites().length > 0) {
 				<div class="flex items-center justify-center mb-4 gap-2">
 					<span id="fav-sort-label" class="text-sm text-gray-600 dark:text-gray-400">{{ 'MOVIES.SORT_BY' | translate }}:</span>
-					<select 
-						[value]="favService.sortOption()"
-						(change)="onSortChange($event)"
-						aria-labelledby="fav-sort-label"
-						class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-					>
-						<option value="none">{{ 'FAVORITES.SORT_DEFAULT' | translate }}</option>
-						<option value="title-asc">{{ 'FAVORITES.SORT_TITLE_AZ' | translate }}</option>
-						<option value="title-desc">{{ 'FAVORITES.SORT_TITLE_ZA' | translate }}</option>
-						<option value="year-desc">{{ 'FAVORITES.SORT_YEAR_NEW' | translate }}</option>
-						<option value="year-asc">{{ 'FAVORITES.SORT_YEAR_OLD' | translate }}</option>
-						<option value="rating-desc">{{ 'FAVORITES.SORT_RATING_HIGH' | translate }}</option>
-						<option value="rating-asc">{{ 'FAVORITES.SORT_RATING_LOW' | translate }}</option>
-					</select>
+					<app-custom-select
+						[options]="sortOptions"
+						[selectedValue]="favService.sortOption()"
+						(valueChange)="onSortValueChange($event)"
+						[placeholder]="'FAVORITES.SORT_DEFAULT' | translate"
+						[translateLabels]="true"
+						[width]="'260px'"
+					/>
 				</div>
 			}
 
@@ -86,6 +81,19 @@ export class FavoritesPage {
 	constructor(readonly favService: FavoritesService) {}
 
 	/**
+	 * Sort options for favorites page
+	 */
+	sortOptions = [
+		{ value: 'none', label: 'FAVORITES.SORT_DEFAULT' },
+		{ value: 'title-asc', label: 'FAVORITES.SORT_TITLE_AZ' },
+		{ value: 'title-desc', label: 'FAVORITES.SORT_TITLE_ZA' },
+		{ value: 'year-desc', label: 'FAVORITES.SORT_YEAR_NEW' },
+		{ value: 'year-asc', label: 'FAVORITES.SORT_YEAR_OLD' },
+		{ value: 'rating-desc', label: 'FAVORITES.SORT_RATING_HIGH' },
+		{ value: 'rating-asc', label: 'FAVORITES.SORT_RATING_LOW' },
+	];
+
+	/**
 	 * Check if movie is favorited (always true on this page)
 	 */
 	isFavoriteCheck = (_id: string) => true;
@@ -98,10 +106,9 @@ export class FavoritesPage {
 	}
 
 	/**
-	 * Handle sort change
+	 * Handle sort change from custom select
 	 */
-	onSortChange(event: Event) {
-		const select = event.target as HTMLSelectElement;
-		this.favService.sortOption.set(select.value as SortOption);
+	onSortValueChange(value: string) {
+		this.favService.sortOption.set(value as SortOption);
 	}
 }
