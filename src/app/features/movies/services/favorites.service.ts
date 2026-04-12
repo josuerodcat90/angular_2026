@@ -1,83 +1,59 @@
 import { Injectable, computed, effect, inject, signal, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Subject } from 'rxjs';
 import type { Movie } from '../models';
-import { LanguageService } from '../../../services/language.service';
-import { MoviesApiService } from './movies-api.service';
 
 /**
  * Sort options for favorites
  */
 export type SortOption = 'year-desc' | 'year-asc' | 'rating-desc' | 'rating-asc' | 'title-asc' | 'title-desc' | 'none';
 
-export interface FavoriteId {
-	/** TMDb ID in format 'tmdb_12345' */
-	tmdbId: string;
-	/** When added */
-	addedAt: number;
-}
-
 /**
  * FavoritesService — Signal-based favorites management with localStorage sync
  *
  * Responsibilities:
- * - Manage favorite movie IDs as signal (not full objects for i18n support)
+ * - Manage user's favorite movies as signal
  * - Persistent storage via localStorage
  * - CRUD operations: add, remove, toggle, query
- * - refreshFavorites() method to fetch current data from API when language changes
- * - Emits 'languageChanged' event to trigger refresh
+ * - Effect automatically syncs signal to localStorage
+ * - Sorting options: by year or rating
  *
  * Architecture:
- * - favoriteIds: Signal<FavoriteId[]> — only IDs stored
- * - favorites: computed from favoriteIds (initially empty, populated via refreshFavorites)
- * - refreshFavorites(): fetches full movie data from API
+ * - favorites: Signal<Movie[]> — source of truth in memory
+ * - sortedFavorites: computed signal with sorting applied
+ * - sortOption: signal to control sort order
+ * - effect() watches signal, persists to localStorage on change
+ * - loadFromStorage() restores on initialization
  *
- * i18n approach (Option C):
- * - Only IDs stored in localStorage
- * - On language change, call refreshFavorites() to fetch fresh data in new language
- * - No fetch on init — only when needed
+ * Note: Gracefully handles:
+ * - Private browsing mode (localStorage disabled)
+ * - Storage quota exceeded
+ * - Corrupted JSON in storage
  */
 @Injectable({
 	providedIn: 'root',
 })
 export class FavoritesService {
 	// Configuration
-	private readonly STORAGE_KEY = 'movies-favorites-ids';
+	private readonly STORAGE_KEY = 'movies-favorites';
 
 	// Platform detection for SSR compatibility
 	private platformId = inject(PLATFORM_ID);
 	private isBrowser = isPlatformBrowser(this.platformId);
 
-	// Services
-	private moviesApi = inject(MoviesApiService);
-	private languageService = inject(LanguageService);
-
-	// Signal: reactive favorite IDs only (for persistence)
-	private favoriteIdsSignal = signal<FavoriteId[]>([]);
-
-	// Signal: full movie objects (populated via refreshFavorites)
-	private favoritesDataSignal = signal<Movie[]>([]);
-
-	// Loading state for refresh operation
-	isRefreshing = signal(false);
+	// Signal: reactive favorites list
+	private favoritesSignal = signal<Movie[]>([]);
 
 	// Sort option signal
 	sortOption = signal<SortOption>('none');
 
-	// Event emitter for language change (components listen and call refresh)
-	languageChanged = new Subject<void>();
-
-	// Public accessor for IDs (read-only)
-	get favoriteIds(): typeof this.favoriteIdsSignal {
-		return this.favoriteIdsSignal;
+	// Public accessor (allows both read and write)
+	get favorites(): typeof this.favoritesSignal {
+		return this.favoritesSignal;
 	}
-
-	// Computed: favorites with data (populated via refreshFavorites)
-	favorites = computed(() => this.favoritesDataSignal());
 
 	// Computed: sorted favorites
 	sortedFavorites = computed(() => {
-		const movies = this.favoritesDataSignal();
+		const movies = this.favoritesSignal();
 		const sort = this.sortOption();
 
 		if (sort === 'none') {
@@ -104,96 +80,34 @@ export class FavoritesService {
 		});
 	});
 
-	// Computed: favorite count (from IDs)
-	favoriteCount = computed(() => this.favoriteIdsSignal().length);
+	// Computed: favorite count
+	favoriteCount = computed(() => this.favoritesSignal().length);
 
 	constructor() {
-		// Load saved favorite IDs from localStorage if in browser
+		// Load saved favorites from localStorage if in browser
 		if (this.isBrowser) {
 			const stored = this.loadFromStorage();
-			this.favoriteIdsSignal.set(stored);
+			this.favoritesSignal.set(stored);
 		}
 
-		// Setup effect to persist IDs to localStorage (not full objects)
+		// Setup effect to persist signal to localStorage (only in browser)
 		effect(() => {
-			const ids = this.favoriteIdsSignal();
+			const fav = this.favoritesSignal();
 			if (this.isBrowser) {
-				this.persistToStorage(ids);
+				this.persistToStorage(fav);
 			}
-		});
-
-		// Listen to language changes and refresh favorites data
-		if (this.isBrowser) {
-			this.languageService.languageChanged$.subscribe((lang) => {
-				console.log('[FAV] Language changed to:', lang, '- refreshing...');
-				this.refreshFavoritesData();
-			});
-
-			// Initial load: if we have favorites but no data, fetch them once
-			const ids = this.favoriteIdsSignal();
-			console.log('[FAV] Loaded IDs:', ids.length, ids);
-			if (ids.length > 0) {
-				setTimeout(() => {
-					console.log('[FAV] Starting refresh...');
-					this.refreshFavoritesData();
-				}, 100);
-			}
-		}
-	}
-
-	/**
-	 * Refresh favorites data from API in current language
-	 * Called internally when language changes
-	 * MERGEs with existing data (doesn't lose newly added favorites)
-	 */
-	private refreshFavoritesData(): void {
-		const ids = this.favoriteIdsSignal();
-		if (ids.length === 0) {
-			this.favoritesDataSignal.set([]);
-			return;
-		}
-
-		console.log(
-			'[FAV] Refreshing with IDs:',
-			ids.map((f) => f.tmdbId),
-		);
-		this.isRefreshing.set(true);
-		this.moviesApi.refreshFavorites(ids.map((f) => f.tmdbId)).subscribe({
-			next: (newMovies) => {
-				console.log('[FAV] Got movies:', newMovies?.length, newMovies);
-				const validNewMovies = newMovies.filter((m) => m && m.imdbID);
-
-				// REPLACE all data (not merge) - this updates to new language
-				console.log('[FAV] Setting fresh data:', validNewMovies.length);
-				this.favoritesDataSignal.set(validNewMovies);
-				this.isRefreshing.set(false);
-			},
-			error: (err) => {
-				console.error('[FAV] Failed to refresh favorites:', err);
-				this.isRefreshing.set(false);
-			},
 		});
 	}
 
 	/**
 	 * Add movie to favorites
-	 * Stores only the ID for i18n support, plus the Movie object for immediate display
+	 * Idempotent: no duplicate if already favorited
 	 */
 	addFavorite(movie: Movie): void {
-		const tmdbId = movie.imdbID?.startsWith('tmdb_') ? movie.imdbID : `tmdb_${movie.imdbID}`;
-
-		this.favoriteIdsSignal.update((current) => {
+		this.favorites.update((current) => {
 			// Check for duplicate
-			if (current.some((m) => m.tmdbId === tmdbId)) {
-				return current;
-			}
-			return [...current, { tmdbId, addedAt: Date.now() }];
-		});
-
-		// Also add to data signal for immediate display
-		this.favoritesDataSignal.update((current) => {
-			if (current.some((m) => m.imdbID === tmdbId)) {
-				return current;
+			if (current.some((m) => m.imdbID === movie.imdbID)) {
+				return current; // Already favorited, no change
 			}
 			return [...current, movie];
 		});
@@ -201,26 +115,18 @@ export class FavoritesService {
 
 	/**
 	 * Remove movie from favorites by ID
+	 * Idempotent: no error if not in favorites
 	 */
 	removeFavorite(id: string): void {
-		const tmdbId = id.startsWith('tmdb_') ? id : `tmdb_${id}`;
-		this.favoriteIdsSignal.update((current) => current.filter((m) => m.tmdbId !== tmdbId));
-		// Remove from both signals
-		this.favoritesDataSignal.update((current) =>
-			current.filter((m) => {
-				const mId = m.imdbID?.startsWith('tmdb_') ? m.imdbID : `tmdb_${m.imdbID}`;
-				return mId !== tmdbId;
-			}),
-		);
+		this.favorites.update((current) => current.filter((m) => m.imdbID !== id));
 	}
 
 	/**
 	 * Toggle favorite: add if not, remove if already favorited
 	 */
 	toggleFavorite(movie: Movie): void {
-		const tmdbId = movie.imdbID?.startsWith('tmdb_') ? movie.imdbID : `tmdb_${movie.imdbID}`;
-		if (this.isFavorite(tmdbId)) {
-			this.removeFavorite(tmdbId);
+		if (this.isFavorite(movie.imdbID)) {
+			this.removeFavorite(movie.imdbID);
 		} else {
 			this.addFavorite(movie);
 		}
@@ -230,38 +136,21 @@ export class FavoritesService {
 	 * Check if movie is favorited
 	 */
 	isFavorite(id: string): boolean {
-		const tmdbId = id.startsWith('tmdb_') ? id : `tmdb_${id}`;
-		return this.favoriteIdsSignal().some((m) => m.tmdbId === tmdbId);
+		return this.favorites().some((m) => m.imdbID === id);
 	}
 
 	/**
 	 * Clear all favorites
 	 */
 	clearFavorites(): void {
-		this.favoriteIdsSignal.set([]);
-		this.favoritesDataSignal.set([]);
+		this.favorites.set([]);
 	}
 
 	/**
-	 * Set movie data after fetching from API
-	 * Called by MoviesApiService after refreshFavorites()
-	 */
-	setFavoritesData(movies: Movie[]): void {
-		this.favoritesDataSignal.set(movies);
-	}
-
-	/**
-	 * Get IDs for refresh
-	 */
-	getIdsForRefresh(): string[] {
-		return this.favoriteIdsSignal().map((f) => f.tmdbId);
-	}
-
-	/**
-	 * Load favorite IDs from localStorage
+	 * Load favorites from localStorage on service initialization
 	 * Returns empty array if storage unavailable or corrupted
 	 */
-	private loadFromStorage(): FavoriteId[] {
+	private loadFromStorage(): Movie[] {
 		try {
 			const stored = localStorage.getItem(this.STORAGE_KEY);
 			if (!stored) {
@@ -269,57 +158,39 @@ export class FavoritesService {
 			}
 
 			const parsed = JSON.parse(stored);
-			if (!Array.isArray(parsed) || parsed.length === 0) {
-				return [];
-			}
-
-			// Handle various formats:
-			// 1. Old format: array of full Movie objects
-			if (parsed[0] && parsed[0].imdbID) {
-				// Old format: Movie objects - migrate to FavoriteId
-				const ids = parsed.map((m: Movie) => ({
-					tmdbId: m.imdbID?.startsWith('tmdb_') ? m.imdbID : `tmdb_${m.imdbID}`,
-					addedAt: Date.now(),
-				}));
-				// Save in new format after migration
-				setTimeout(() => this.persistToStorage(ids), 0);
-				return ids;
-			}
-			// 2. Format: array of strings (old IDs)
-			if (typeof parsed[0] === 'string') {
-				return parsed.map((id: string) => ({
-					tmdbId: id.startsWith('tmdb_') ? id : `tmdb_${id}`,
-					addedAt: Date.now(),
-				}));
-			}
-			// 3. New format: FavoriteId objects
-			if (parsed[0] && parsed[0].tmdbId) {
-				return parsed;
-			}
-
-			return [];
+			// Validate it's an array
+			return Array.isArray(parsed) ? parsed : [];
 		} catch (error) {
+			// Handle parse error, missing storage, or localStorage disabled
+			// Graceful degradation: start with empty favorites
 			if (error instanceof SyntaxError) {
 				console.warn('Corrupted favorites in localStorage:', error);
+			} else {
+				console.warn('localStorage unavailable:', error);
 			}
 			return [];
 		}
 	}
 
 	/**
-	 * Persist favorite IDs to localStorage
+	 * Persist favorites signal to localStorage
+	 * Called by effect() whenever signal changes
+	 * Gracefully handles storage errors
 	 */
-	private persistToStorage(ids: FavoriteId[]): void {
+	private persistToStorage(movies: Movie[]): void {
 		try {
-			localStorage.setItem(this.STORAGE_KEY, JSON.stringify(ids));
+			localStorage.setItem(this.STORAGE_KEY, JSON.stringify(movies));
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error.name === 'QuotaExceededError') {
 					console.warn('localStorage quota exceeded, favorites not persisted:', error);
 				} else if (error.message.includes('disabled')) {
 					console.warn('localStorage disabled (private browsing?), favorites in-memory only:', error);
+				} else {
+					console.warn('localStorage write error:', error);
 				}
 			}
+			// Graceful degradation: app continues, favorites in-memory but not persisted
 		}
 	}
 }

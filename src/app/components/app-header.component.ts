@@ -1,10 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ThemeService } from '../services/theme.service';
-import { LanguageService } from '../services/language.service';
-import { CustomSelectComponent } from '../shared/components/custom-select/custom-select.component';
 
 /**
  * AppHeader — Navigation bar with theme toggle
@@ -13,7 +10,7 @@ import { CustomSelectComponent } from '../shared/components/custom-select/custom
 @Component({
 	selector: 'app-header',
 	standalone: true,
-	imports: [CommonModule, RouterLink, RouterLinkActive, TranslateModule, CustomSelectComponent],
+	imports: [CommonModule, RouterLink, RouterLinkActive],
 	template: `
 		<header class="sticky top-0 z-100 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 py-4 shadow-md">
 			<div class="max-w-[1400px] mx-auto px-8 flex items-center justify-between gap-8">
@@ -32,24 +29,15 @@ import { CustomSelectComponent } from '../shared/components/custom-select/custom
 						routerLinkActive="active"
 						[attr.aria-current]="isActive(['/', 'movies']) ? 'page' : null"
 						class="nav-link"
-					>{{ 'NAV.MOVIES' | translate }}</a>
+					>Movies</a>
 					<a [routerLink]="['/', 'favorites']" 
 						routerLinkActive="active"
 						[attr.aria-current]="isActive(['/', 'favorites']) ? 'page' : null"
 						class="nav-link"
-					>{{ 'NAV.FAVORITES' | translate }}</a>
+					>Favorites</a>
 				</nav>
 
-			<!-- Language Selector -->
-			<app-custom-select
-				[options]="languageOptions"
-				[selectedValue]="currentLanguage()"
-				(valueChange)="changeLanguage($event)"
-				[placeholder]="'LANG.SELECT_LANGUAGE' | translate"
-				[width]="'120px'"
-			/>
-
-			<!-- Theme Toggle -->
+<!-- Theme Toggle -->
 			<button
 				(click)="toggleTheme($event)"
 				[attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
@@ -108,31 +96,7 @@ import { CustomSelectComponent } from '../shared/components/custom-select/custom
 })
 export class AppHeaderComponent {
 	private readonly themeService = inject(ThemeService);
-	private readonly languageService = inject(LanguageService);
 	private readonly router = inject(Router);
-
-	// Language options for custom select
-	languageOptions: { value: string; label: string }[] = [];
-
-	constructor() {
-		this.languageOptions = this.languageService.getAvailableLanguages().map((lang) => ({
-			value: lang.code,
-			label: lang.name,
-		}));
-	}
-
-	// Language methods
-	availableLanguages(): { code: string; name: string }[] {
-		return this.languageService.getAvailableLanguages();
-	}
-
-	currentLanguage(): string {
-		return this.languageService.getLanguage();
-	}
-
-	changeLanguage(lang: string): void {
-		this.languageService.setLanguage(lang);
-	}
 
 	toggleTheme(event: MouseEvent): void {
 		const rect = (event.target as HTMLElement).getBoundingClientRect();

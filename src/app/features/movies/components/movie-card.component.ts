@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
 import type { Movie } from '../models';
 
 /**
@@ -34,7 +33,7 @@ import type { Movie } from '../models';
 @Component({
 	selector: 'app-movie-card',
 	standalone: true,
-	imports: [CommonModule, TranslateModule],
+	imports: [CommonModule],
 	providers: [DecimalPipe],
 	changeDetection: ChangeDetectionStrategy.Default, // Changed to Default to ensure changes are detected
 	template: `
@@ -82,14 +81,14 @@ import type { Movie } from '../models';
 					[class.hover:bg-pink-600]="isFavorite"
 					[class.dark:hover:bg-pink-700]="isFavorite"
 					type="button"
-					[title]="isFavorite ? ('FAVORITES.REMOVE' | translate) : ('FAVORITES.ADD' | translate)"
+					[title]="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
 					aria-label="Toggle favorite"
 				>
 					<i class="text-lg" 
 						[class]="!isFavorite ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')">
 					</i>
-					<span class="group-hover:hidden">{{ isFavorite ? ('DETAILS.FAVORITED' | translate) : ('FAVORITES.ADD' | translate) }}</span>
-					<span class="hidden group-hover:inline">{{ isFavorite ? ('DETAILS.REMOVE_FAVORITES' | translate) : ('FAVORITES.ADD' | translate) }}</span>
+					<span class="group-hover:hidden">{{ isFavorite ? 'Favorited' : 'Add favorite' }}</span>
+					<span class="hidden group-hover:inline">{{ isFavorite ? 'Remove' : 'Add favorite' }}</span>
 				</button>
 			</div>
 		</div>

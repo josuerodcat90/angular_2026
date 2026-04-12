@@ -1,10 +1,9 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError, forkJoin } from 'rxjs';
-import { tap, catchError, finalize, map } from 'rxjs/operators';
+import { tap, catchError, finalize } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { OmdbMovie, OmdbSearchResponse, Movie } from '../models/movie.model';
-import { LanguageService } from '../../../services/language.service';
 
 /**
  * TMDb API Service
@@ -14,7 +13,6 @@ import { LanguageService } from '../../../services/language.service';
 @Injectable({ providedIn: 'root' })
 export class MoviesApiService {
 	private http = inject(HttpClient);
-	private languageService = inject(LanguageService);
 
 	// Configuration
 	private readonly API_KEY = environment.tmdbApiKey;
@@ -34,44 +32,6 @@ export class MoviesApiService {
 
 	// Sort option for search results (default: oldest first)
 	sortOption = signal<string>('year-asc');
-
-	// Helper to get language params for TMDB API
-	private getLanguageParams(): { [key: string]: string } {
-		return { language: this.languageService.getTmdbLanguage() };
-	}
-
-	// Transform TMDB response to our Movie model
-	private transformMovie(movie: any, credits: any): Movie {
-		const director =
-			credits?.crew
-				?.filter((p: any) => p.job === 'Director')
-				.map((p: any) => p.name)
-				.join(', ') || 'N/A';
-
-		const actors =
-			credits?.cast
-				?.slice(0, 5)
-				.map((p: any) => p.name)
-				.join(', ') || 'N/A';
-
-		return {
-			Title: movie.title || 'N/A',
-			Year: movie.release_date?.split('-')[0] || 'N/A',
-			Released: movie.release_date || 'N/A',
-			imdbID: `tmdb_${movie.id}`,
-			Type: 'movie',
-			Poster: movie.poster_path ? `${this.IMAGE_BASE}${movie.poster_path}` : 'N/A',
-			Response: 'True',
-			Plot: movie.overview || 'N/A',
-			Genre: movie.genres?.map((g: any) => g.name).join(', ') || 'N/A',
-			Runtime: movie.runtime ? `${movie.runtime} min` : 'N/A',
-			Rated: movie.adult === true ? 'NC-17' : 'N/A',
-			Director: director,
-			Actors: actors,
-			voteAverage: movie.vote_average || 0,
-			voteCount: movie.vote_count || 0,
-		};
-	}
 
 	// Sorted search results computed
 	sortedSearchResults = computed(() => {
@@ -165,7 +125,6 @@ export class MoviesApiService {
 					api_key: this.API_KEY,
 					query: query.trim(),
 					page: page.toString(),
-					...this.getLanguageParams(),
 				},
 			})
 			.pipe(
@@ -206,7 +165,7 @@ export class MoviesApiService {
 	 * 1. /movie/{id} — base movie details (overview, genres, runtime, etc.)
 	 * 2. /movie/{id}/credits — cast and crew (director, actors)
 	 */
-	getMovieDetail(id: string, skipSignalUpdate = false): Observable<any> {
+	getMovieDetail(id: string): Observable<any> {
 		if (!id) {
 			return throwError(() => new Error('Movie ID required'));
 		}
@@ -220,30 +179,63 @@ export class MoviesApiService {
 		// Fetch movie details AND credits in parallel
 		return forkJoin({
 			movie: this.http.get<any>(`${this.BASE_URL}/movie/${tmdbId}`, {
-				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
+				params: { api_key: this.API_KEY },
 			}),
 			credits: this.http.get<any>(`${this.BASE_URL}/movie/${tmdbId}/credits`, {
-				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
+				params: { api_key: this.API_KEY },
 			}),
 		}).pipe(
-			map(({ movie, credits }) => {
-				// Transform TMDb response to our Movie model
-				const movieData: Movie = this.transformMovie(movie, credits);
-				return movieData;
-			}),
-			tap((movieData) => {
-				// Only update signal if not skipped (e.g., for favorites refresh)
-				if (!skipSignalUpdate) {
+			tap(({ movie, credits }) => {
+				if (movie && movie.id) {
+					// Extract director from credits.crew
+					const director =
+						credits.crew
+							?.filter((p: any) => p.job === 'Director')
+							.map((p: any) => p.name)
+							.join(', ') || 'N/A';
+
+					// Extract top 5 actors from credits.cast
+					const actors =
+						credits.cast
+							?.slice(0, 5)
+							.map((p: any) => p.name)
+							.join(', ') || 'N/A';
+
+					// Transform TMDb response to our Movie model
+					const movieData: Movie = {
+						// Basic info
+						Title: movie.title || 'N/A',
+						Year: movie.release_date?.split('-')[0] || 'N/A',
+						Released: movie.release_date || 'N/A',
+						imdbID: `tmdb_${movie.id}`,
+						Type: 'movie',
+						Poster: movie.poster_path ? `${this.IMAGE_BASE}${movie.poster_path}` : 'N/A',
+						Response: 'True',
+
+						// Extended info from TMDb
+						Plot: movie.overview || 'N/A',
+						Genre: movie.genres?.map((g: any) => g.name).join(', ') || 'N/A',
+						Runtime: movie.runtime ? `${movie.runtime} min` : 'N/A',
+						Rated: movie.adult === true ? 'NC-17' : 'N/A',
+
+						// 📌 Credits from /credits endpoint
+						Director: director,
+						Actors: actors,
+
+						// 📌 Ratings from /movie/{id} endpoint
+						voteAverage: movie.vote_average || 0,
+						voteCount: movie.vote_count || 0,
+					};
 					this.movieDetail.set(movieData);
 					this.error.set(null);
+				} else {
+					throw new Error('Invalid movie data');
 				}
 			}),
 			catchError((err) => {
 				const errorMsg = err?.error?.status_message || err?.message || 'Failed to load movie details';
-				if (!skipSignalUpdate) {
-					this.error.set(errorMsg);
-					this.movieDetail.set(null);
-				}
+				this.error.set(errorMsg);
+				this.movieDetail.set(null);
 				return throwError(() => new Error(errorMsg));
 			}),
 			finalize(() => this.isLoading.set(false)),
@@ -292,7 +284,6 @@ export class MoviesApiService {
 					'vote_count.gte': '50', // Lower threshold for more results
 					include_adult: 'false',
 					page: '1',
-					...this.getLanguageParams(),
 				},
 			})
 			.pipe(
@@ -354,7 +345,7 @@ export class MoviesApiService {
 
 		return this.http
 			.get<any>(`${this.BASE_URL}/movie/${tmdbId}/images`, {
-				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
+				params: { api_key: this.API_KEY },
 			})
 			.pipe(
 				tap((response) => {
@@ -365,42 +356,5 @@ export class MoviesApiService {
 					return of({ backdrops: [], posters: [], logos: [] });
 				}),
 			);
-	}
-
-	/**
-	 * Refresh all favorites with current language
-	 * Fetches full data for all favorite IDs in parallel
-	 * Called by FavoritesPage when language changes
-	 */
-	refreshFavorites(favoriteIds: string[]): Observable<Movie[]> {
-		if (!favoriteIds || favoriteIds.length === 0) {
-			return of([]);
-		}
-
-		this.isLoading.set(true);
-		this.error.set(null);
-
-		// Create parallel requests for all favorites (skip signal update to avoid interfering with view)
-		const requests = favoriteIds.map((id) => this.getMovieDetail(id, true));
-
-		return forkJoin(requests).pipe(
-			tap({
-				next: (movies) => {
-					console.log('[API] All movies:', movies?.length);
-					this.isLoading.set(false);
-				},
-				error: (err) => {
-					console.error('[API] ForkJoin error:', err);
-					this.error.set('Failed to load favorites');
-					this.isLoading.set(false);
-				},
-			}),
-			catchError((err) => {
-				console.error('[API] Catch error:', err);
-				this.error.set('Failed to load favorites');
-				this.isLoading.set(false);
-				return of([]);
-			}),
-		);
 	}
 }
