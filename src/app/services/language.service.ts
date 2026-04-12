@@ -68,7 +68,7 @@ export class LanguageService {
 			return;
 		}
 
-		const previousLang = this.languageSignal();
+		const _previousLang = this.languageSignal();
 		this.languageSignal.set(lang);
 		this.translate.use(lang);
 

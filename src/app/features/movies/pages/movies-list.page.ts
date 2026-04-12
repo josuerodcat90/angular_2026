@@ -71,7 +71,11 @@ import { Subscription } from 'rxjs';
 							[width]="'110px'"
 						/>
 					</div>
-					<app-movie-slider [movies]="apiService.trendingMovies" />
+					<app-movie-slider 
+						[movies]="apiService.trendingMovies" 
+						[isLoadingInput]="apiService.isLoading"
+						[skeletonItemCountInput]="6"
+					/>
 				</aside>
 			}
 
@@ -96,13 +100,9 @@ import { Subscription } from 'rxjs';
 				</div>
 			}
 
-			<!-- Loading State -->
+			<!-- Loading State - ahora se maneja con skeleton en MovieGridComponent -->
 			@if (apiService.isLoading()) {
-				<div role="status" aria-live="polite" class="text-center p-8 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md my-4">
-					<p class="text-blue-600 dark:text-blue-400 text-lg">
-						<i class="ph ph-spinner animate-spin text-xl align-middle" aria-hidden="true"></i> {{ 'APP.SEARCHING' | translate }}
-					</p>
-				</div>
+				<!-- Skeleton cards shown in MovieGridComponent -->
 			}
 
 			<!-- Error State -->
@@ -116,9 +116,10 @@ import { Subscription } from 'rxjs';
 			}
 
 			<!-- Grid Display -->
-			@if (!apiService.isLoading() && !apiService.error()) {
+			@if (!apiService.error()) {
 				<app-movie-grid
 					[movies]="apiService.sortedSearchResults"
+					[isLoadingInput]="apiService.isLoading"
 					[isFavoriteCheck]="isFavoriteCheck"
 					(favoriteToggled)="onFavoriteToggled($event)"
 				/>
@@ -167,7 +168,7 @@ export class MoviesListPage implements OnInit, OnDestroy {
 		this.apiService.getTopRatedFromYear(this.apiService.selectedYear()).subscribe();
 
 		// Subscribe to language changes - reload data when language changes
-		this.langSubscription = this.languageService.languageChanged$.subscribe((lang) => {
+		this.langSubscription = this.languageService.languageChanged$.subscribe(() => {
 			this.reloadCurrentData();
 		});
 	}

@@ -54,7 +54,7 @@ export class ThemeService {
 
 		// Use View Transitions API if available, otherwise just switch
 		if (this.isBrowser && document.startViewTransition) {
-			const transition = document.startViewTransition(() => {
+			const _transition = document.startViewTransition(() => {
 				this.themeSignal.set(next);
 				if (this.isBrowser) {
 					localStorage.setItem('theme', next);
