@@ -32,12 +32,16 @@ bun run start
 
 1. Get your free TMDb API key at [themoviedb.org/settings/api](https://wwwoviedb.org/settings/api)
 
-2. Create a `.env` file in the project root:
-```
-TMDB_API_KEY=your_actual_key_here
+2. Open `src/environments/environment.ts` and replace `YOUR_API_KEY_HERE` with your actual key:
+```typescript
+export const environment = {
+  production: false,
+  tmdbApiKey: 'TU_API_KEY_AQUI',  // <-- Tu key aquí
+  tmdbBaseUrl: 'https://api.themoviedb.org/3',
+};
 ```
 
-3. Run `bun install` and start the app — environment variables load automatically.
+> **Note**: Never commit your actual API key to git. Add `src/environments/environment.ts` to `.gitignore` if needed.
 
 
 

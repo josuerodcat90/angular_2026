@@ -1,0 +1,95 @@
+{
+  "APP": {
+    "TITLE": "Búsqueda de Películas",
+    "SUBTITLE": "Encuentra tus películas favoritas y crea tu colección",
+    "SEARCH": "Buscar películas...",
+    "LOADING": "Cargando...",
+    "SEARCHING": "Buscando películas...",
+    "TRY_AGAIN": "Reintentar",
+    "ERROR": "Ocurrió un error",
+    "NO_RESULTS": "No se encontraron resultados"
+  },
+  "NAV": {
+    "MOVIES": "Películas",
+    "FAVORITES": "Favoritos"
+  },
+  "MOVIES": {
+    "TOP_RATED": "Mejor Valoradas",
+    "SEARCH": "Buscar",
+    "YEAR": "Año",
+    "RATING": "Puntuación",
+    "SORT_BY": "Ordenar por",
+    "TITLE": "Título",
+    "RELEASE_DATE": "Fecha de Estreno",
+    "POPULARITY": "Popularidad",
+    "VOTE_COUNT": "Votos",
+    "ASCENDING": "Ascendente",
+    "DESCENDING": "Descendente",
+    "SORT_YEAR_OLD": "Año (Más antiguo)",
+    "SORT_YEAR_NEW": "Año (Más reciente)",
+    "SORT_RATING_HIGH": "Puntuación (Mayor)",
+    "SORT_RATING_LOW": "Puntuación (Menor)",
+    "SORT_TITLE_AZ": "Título (A-Z)",
+    "SORT_TITLE_ZA": "Título (Z-A)",
+    "FAVORITE_COUNT": "{{count}} favorito(s)",
+    "SELECT_YEAR": "Seleccionar año",
+    "SEARCH_YEAR": "Buscar año...",
+    "SORT_PLACEHOLDER": "Ordenar por"
+  },
+  "DETAILS": {
+    "OVERVIEW": "Sinopsis",
+    "SCENES": "Escenas",
+    "CAST": "Reparto",
+    "BACK": "Volver",
+    "BACK_TO_SEARCH": "Volver a Búsqueda",
+    "LOADING_DETAILS": "Cargando detalles...",
+    "ADD_FAVORITES": "Agregar a Favoritos",
+    "REMOVE_FAVORITES": "Quitar de Favoritos",
+    "FAVORITED": "Añadido",
+    "CLOSE": "Cerrar",
+    "CLOSE_GALLERY": "Cerrar galería",
+    "MOVIE_DETAILS": "Detalles de Película",
+    "PLOT": "Sinopsis",
+    "GENRES": "Géneros",
+    "DIRECTOR": "Director",
+    "WRITER": "Guionista",
+    "ADDITIONAL_INFO": "Información Adicional",
+    "RELEASE_DATE": "Fecha de Estreno",
+    "RUNTIME": "Duración",
+    "IMDB": "IMDb ID",
+    "BOX_OFFICE": "Taquilla",
+    "WEBSITE": "Sitio Web",
+    "NO_CREW": "No hay información del equipo disponible"
+  },
+  "FAVORITES": {
+    "TITLE": "Mis Favoritos",
+    "SUBTITLE": "Tu colección personal de películas favoritas",
+    "EMPTY": "Aún no tienes favoritos",
+    "ADD": "Agregar a favoritos",
+    "REMOVE": "Quitar de favoritos",
+    "COUNT": "{{count}} película(s) en tu colección",
+    "START_ADDING": "¡Empieza a agregar películas a tus favoritos desde la página de búsqueda!",
+    "SORT_DEFAULT": "Por defecto (orden agregado)",
+    "SORT_TITLE_AZ": "Título (A-Z)",
+    "SORT_TITLE_ZA": "Título (Z-A)",
+    "SORT_YEAR_NEW": "Año (Más reciente)",
+    "SORT_YEAR_OLD": "Año (Más antiguo)",
+    "SORT_RATING_HIGH": "Puntuación (Mayor)",
+    "SORT_RATING_LOW": "Puntuación (Menor)"
+  },
+  "THEME": {
+    "LIGHT": "Modo claro",
+    "DARK": "Modo oscuro"
+  },
+  "LANG": {
+    "SPANISH": "Español",
+    "ENGLISH": "English",
+    "SELECT_LANGUAGE": "Seleccionar idioma"
+  },
+  "SEARCH_BAR": {
+    "LABEL": "Buscar películas:",
+    "PLACEHOLDER": "ej. Inception, Avatar...",
+    "CLEAR": "Limpiar búsqueda",
+    "ERROR": "Ingresa un título (al menos 1 carácter)"
+  }
+}

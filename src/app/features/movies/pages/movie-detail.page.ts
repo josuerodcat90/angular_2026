@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, effect, OnInit, HostListener } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CommonModule, Location } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { MoviesApiService } from '../services/movies-api.service';
 import { FavoritesService } from '../services/favorites.service';
 
@@ -20,18 +21,18 @@ import { FavoritesService } from '../services/favorites.service';
 @Component({
 	selector: 'app-movie-detail',
 	standalone: true,
-	imports: [CommonModule, RouterLink],
+	imports: [CommonModule, RouterLink, TranslateModule],
 	template: `
 		<div class="bg-gray-100 dark:bg-gray-900 px-5 py-4 max-w-4xl mx-auto transition-colors duration-150 flex flex-col flex-grow rounded-b-xl min-h-[calc(100vh-80px)]">
 			<!-- Header -->
 			<div class="flex items-center gap-4 mb-6">
 				<button 
-					[routerLink]="['/movies']" 
+					(click)="goBack()"
 					class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors cursor-pointer"
 				>
-					<i class="ph ph-arrow-left" aria-hidden="true"></i> Back
+					<i class="ph ph-arrow-left" aria-hidden="true"></i> {{ 'DETAILS.BACK' | translate }}
 				</button>
-				<h1 class="text-2xl font-bold text-gray-900 dark:text-white flex-1 text-center">Movie Details</h1>
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-white flex-1 text-center">{{ 'DETAILS.MOVIE_DETAILS' | translate }}</h1>
 				<div class="w-20"></div>
 			</div>
 
@@ -39,7 +40,7 @@ import { FavoritesService } from '../services/favorites.service';
 			@if (apiService.isLoading()) {
 				<div role="status" aria-live="polite" class="flex flex-col items-center justify-center p-12 bg-gray-200 dark:bg-gray-800 rounded-xl">
 					<i class="ph ph-spinner animate-spin text-5xl text-blue-600 dark:text-blue-400 mb-4" aria-hidden="true"></i>
-					<p class="text-gray-600 dark:text-gray-400 text-lg">Loading details...</p>
+					<p class="text-gray-600 dark:text-gray-400 text-lg">{{ 'DETAILS.LOADING_DETAILS' | translate }}</p>
 				</div>
 			}
 
@@ -52,7 +53,7 @@ import { FavoritesService } from '../services/favorites.service';
 							(click)="apiService.clearError()" 
 							class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
 						>
-							Close
+							{{ 'DETAILS.CLOSE' | translate }}
 						</button>
 					</div>
 				</div>
@@ -114,40 +115,42 @@ import { FavoritesService } from '../services/favorites.service';
 							</div>
 
 							<!-- Plot + Favorite Button (juntos, con space-between) -->
-							<div class="flex flex-col justify-between gap-4 flex-1">
+							<div class="flex flex-col gap-4 flex-1">
 								<!-- Plot en caja separada -->
 								@if (movie()!.Plot && movie()!.Plot !== 'N/A') {
-									<div class="bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 border-l-4 border-blue-500">
+									<div class="bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 border-l-4 border-blue-500 overflow-y-auto max-h-[200px]">
 										<div class="flex items-center gap-2 mb-2">
 											<i class="ph ph-book-open text-xl text-blue-600 dark:text-blue-400" aria-hidden="true"></i>
-											<span class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">Plot</span>
+											<span class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">{{ 'DETAILS.PLOT' | translate }}</span>
 										</div>
 										<p class="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{{ movie()!.Plot }}</p>
 									</div>
 								}
 
-								<!-- Favorite button (al fondo) -->
-								<button
-									(click)="toggleFavorite()"
-									(mouseenter)="onHover(true)"
-									(mouseleave)="onHover(false)"
-									[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
-									class="group relative flex items-center justify-center gap-2 px-6 py-3 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm text-white rounded-lg font-medium transition-colors cursor-pointer"
-									[class.bg-pink-500]="isFavorite()"
-									[class.dark:bg-pink-600]="isFavorite()"
-									[class.hover:bg-gray-400]="!isFavorite()"
-									[class.dark:hover:bg-gray-600]="!isFavorite()"
-									[class.hover:bg-pink-600]="isFavorite()"
-									[class.dark:hover:bg-pink-700]="isFavorite()"
-								>
-									<!-- Icono: ph-heart si no es favorito, ph-fill ph-heart si lo es, ph-fill ph-heart-break en hover cuando es favorito -->
-									<i class="text-xl" 
-										[class]="!isFavorite() ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')"
-										aria-hidden="true">
-									</i>
-									<span class="group-hover:hidden">{{ isFavorite() ? 'Favorited' : 'Add to Favorites' }}</span>
-									<span class="hidden group-hover:inline">{{ isFavorite() ? 'Remove' : 'Add to Favorites' }}</span>
-								</button>
+								<!-- Favorite button (always at bottom) -->
+								<div class="mt-auto">
+									<button
+										(click)="toggleFavorite()"
+										(mouseenter)="onHover(true)"
+										(mouseleave)="onHover(false)"
+										[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+										class="group w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-300/80 dark:bg-gray-700/80 backdrop-blur-sm text-white rounded-lg font-medium transition-colors cursor-pointer"
+										[class.bg-pink-500]="isFavorite()"
+										[class.dark:bg-pink-600]="isFavorite()"
+										[class.hover:bg-gray-400]="!isFavorite()"
+										[class.dark:hover:bg-gray-600]="!isFavorite()"
+										[class.hover:bg-pink-600]="isFavorite()"
+										[class.dark:hover:bg-pink-700]="isFavorite()"
+									>
+										<!-- Icono: ph-heart si no es favorito, ph-fill ph-heart si lo es, ph-fill ph-heart-break en hover cuando es favorito -->
+										<i class="text-xl" 
+											[class]="!isFavorite() ? 'ph ph-heart' : (isHovering() ? 'ph-fill ph-heart-break' : 'ph-fill ph-heart')"
+											aria-hidden="true">
+										</i>
+										<span class="group-hover:hidden">{{ isFavorite() ? ('DETAILS.FAVORITED' | translate) : ('DETAILS.ADD_FAVORITES' | translate) }}</span>
+										<span class="hidden group-hover:inline">{{ isFavorite() ? ('DETAILS.REMOVE_FAVORITES' | translate) : ('DETAILS.ADD_FAVORITES' | translate) }}</span>
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -158,7 +161,7 @@ import { FavoritesService } from '../services/favorites.service';
 					<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 						<div class="flex items-center gap-2 mb-4">
 							<i class="ph ph-tag text-2xl text-green-600 dark:text-green-400" aria-hidden="true"></i>
-							<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Genres</h3>
+							<h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'DETAILS.GENRES' | translate }}</h3>
 						</div>
 						<div class="flex flex-wrap gap-2">
 							@for (genre of getGenres(); track genre) {
@@ -176,7 +179,7 @@ import { FavoritesService } from '../services/favorites.service';
 						<div class="flex items-center justify-between mb-4">
 							<div class="flex items-center gap-2">
 								<i class="ph ph-images text-2xl text-purple-600 dark:text-purple-400" aria-hidden="true"></i>
-								<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Scenes</h3>
+								<h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'DETAILS.SCENES' | translate }}</h3>
 							</div>
 							@if (backdrops().length > 8) {
 								<span class="px-3 py-1 bg-purple-500/80 text-white rounded-full text-sm font-medium backdrop-blur-sm" aria-label="{{ backdrops().length - 8 }} additional images">
@@ -216,8 +219,8 @@ import { FavoritesService } from '../services/favorites.service';
 						<!-- Close button -->
 						<button
 							(click)="closeImageModal()"
-							aria-label="Close gallery"
-							title="Close"
+							[attr.aria-label]="'DETAILS.CLOSE_GALLERY' | translate"
+							[title]="'DETAILS.CLOSE' | translate"
 							class="fixed top-24 right-4 flex items-center justify-center p-3 bg-gray-900/50 hover:bg-gray-900/80 text-white rounded-full shadow-lg transition-colors cursor-pointer"
 						>
 							<i class="ph ph-x text-2xl" aria-hidden="true"></i>
@@ -289,29 +292,29 @@ import { FavoritesService } from '../services/favorites.service';
 				<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 					<div class="flex items-center gap-2 mb-4">
 						<i class="ph ph-users text-2xl text-pink-600 dark:text-pink-400" aria-hidden="true"></i>
-						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Crew</h3>
+						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'DETAILS.CAST' | translate }}</h3>
 					</div>
 					<div class="grid gap-4">
 						@if (movie()!.Director) {
 							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-pink-500">
-								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">Director</span>
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">{{ 'DETAILS.DIRECTOR' | translate }}</span>
 								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.Director }}</span>
 							</div>
 						}
 						@if (movie()!.Writer) {
 							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-pink-500">
-								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">Writer</span>
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">{{ 'DETAILS.WRITER' | translate }}</span>
 								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.Writer }}</span>
 							</div>
 						}
 						@if (movie()!.Actors) {
 							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-pink-500">
-								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">Cast</span>
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">{{ 'DETAILS.CAST' | translate }}</span>
 								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.Actors }}</span>
 							</div>
 						}
 						@if (!movie()!.Director && !movie()!.Writer && !movie()!.Actors) {
-							<p class="text-gray-500 dark:text-gray-400">No crew information available</p>
+							<p class="text-gray-500 dark:text-gray-400">{{ 'DETAILS.NO_CREW' | translate }}</p>
 						}
 					</div>
 				</section>
@@ -320,18 +323,18 @@ import { FavoritesService } from '../services/favorites.service';
 				<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 					<div class="flex items-center gap-2 mb-4">
 						<i class="ph ph-info text-2xl text-indigo-600 dark:text-indigo-400" aria-hidden="true"></i>
-						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Additional Info</h3>
+						<h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'DETAILS.ADDITIONAL_INFO' | translate }}</h3>
 					</div>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						@if (movie()!.Released) {
 							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-indigo-500">
-								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">Release Date</span>
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">{{ 'DETAILS.RELEASE_DATE' | translate }}</span>
 								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.Released }}</span>
 							</div>
 						}
 						@if (movie()!.imdbID) {
 							<div class="flex flex-col p-4 bg-gray-300 dark:bg-gray-700 rounded-lg border-l-4 border-indigo-500">
-								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">IMDb ID</span>
+								<span class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase">{{ 'DETAILS.IMDB' | translate }}</span>
 								<span class="text-gray-900 dark:text-white font-medium">{{ movie()!.imdbID }}</span>
 							</div>
 						}
@@ -343,12 +346,12 @@ import { FavoritesService } from '../services/favorites.service';
 			@if (!movie() && !apiService.isLoading() && !apiService.error()) {
 				<div class="flex flex-col items-center justify-center p-12 bg-gray-200 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-600">
 					<i class="ph ph-film-slate text-6xl text-gray-400 dark:text-gray-500 mb-4" aria-hidden="true"></i>
-					<p class="text-xl text-gray-700 dark:text-gray-300 mb-6">Movie not found</p>
+					<p class="text-xl text-gray-700 dark:text-gray-300 mb-6">{{ 'APP.NO_RESULTS' | translate }}</p>
 					<button 
 						[routerLink]="['/movies']" 
 						class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
 					>
-						<i class="ph ph-arrow-left mr-2" aria-hidden="true"></i>Back to Search
+						<i class="ph ph-arrow-left mr-2" aria-hidden="true"></i>{{ 'DETAILS.BACK_TO_SEARCH' | translate }}
 					</button>
 				</div>
 			}
@@ -397,9 +400,27 @@ import { FavoritesService } from '../services/favorites.service';
 })
 export class MovieDetailPage implements OnInit {
 	private route = inject(ActivatedRoute);
+	private router = inject(Router);
+	private location = inject(Location);
 
 	apiService = inject(MoviesApiService);
 	private favoritesService = inject(FavoritesService);
+
+	// Go back - use location.back() which relies on browser history
+	goBack(): void {
+		// Try to go back using browser history
+		if (window.history.length > 1) {
+			this.location.back();
+		} else {
+			// No history, go to home or favorites based on where we came from
+			const referrer = document.referrer;
+			if (referrer?.includes('/favorites')) {
+				this.router.navigate(['/favorites']);
+			} else {
+				this.router.navigate(['/movies']);
+			}
+		}
+	}
 
 	// Keyboard listener for modal navigation
 	@HostListener('window:keydown', ['$event'])
@@ -426,11 +447,11 @@ export class MovieDetailPage implements OnInit {
 	// Computed: is this movie in favorites?
 	isFavorite = computed(() => {
 		const movie = this.movie();
-		const favorites = this.favoritesService.favorites();
-
 		if (!movie) return false;
 
-		return favorites.some((fav) => fav.imdbID === movie.imdbID);
+		// Check IDs directly (works even before refresh)
+		const movieId = movie.imdbID?.startsWith('tmdb_') ? movie.imdbID : `tmdb_${movie.imdbID}`;
+		return this.favoritesService.isFavorite(movieId);
 	});
 
 	// Computed: current movie from service signal
