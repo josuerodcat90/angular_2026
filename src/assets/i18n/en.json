@@ -59,7 +59,17 @@
     "IMDB": "IMDb ID",
     "BOX_OFFICE": "Box Office",
     "WEBSITE": "Website",
-    "NO_CREW": "No crew information available"
+    "NO_CREW": "No crew information available",
+    "VIDEOS": "Videos",
+    "COLLECTION": "Collection",
+    "COLLECTION_PART_OF": "Part of",
+    "CURRENT_MOVIE": "Current",
+    "WATCH_ON_YOUTUBE": "Watch on YouTube",
+    "NO_VIDEOS": "No videos available",
+    "NO_COLLECTION": "No collection available",
+    "TRAILER": "Trailer",
+    "TEASER": "Teaser",
+    "CLIP": "Clip"
   },
   "FAVORITES": {
     "TITLE": "My Favorites",

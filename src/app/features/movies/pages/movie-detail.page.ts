@@ -1,4 +1,15 @@
-import { Component, inject, signal, computed, effect, OnInit, HostListener } from '@angular/core';
+import {
+	Component,
+	inject,
+	signal,
+	computed,
+	effect,
+	OnInit,
+	HostListener,
+	ViewChild,
+	ElementRef,
+	AfterViewInit,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -172,14 +183,14 @@ import { SkeletonDetailComponent } from '../../../shared/components/skeleton/ske
 				}
 
 				<!-- Backdrops / Scenes -->
-				@if (backdrops().length > 0) {
+				@if (movie() && backdrops().length > 0) {
 					<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
 						<div class="flex items-center justify-between mb-4">
 							<div class="flex items-center gap-2">
 								<i class="ph ph-images text-2xl text-purple-600 dark:text-purple-400" aria-hidden="true"></i>
 								<h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'DETAILS.SCENES' | translate }}</h3>
 							</div>
-							@if (backdrops().length > 8) {
+							@if (movie() && backdrops().length > 8) {
 								<span class="px-3 py-1 bg-purple-500/80 text-white rounded-full text-sm font-medium backdrop-blur-sm" aria-label="{{ backdrops().length - 8 }} additional images">
 									+{{ backdrops().length - 8 }}
 								</span>
@@ -197,6 +208,172 @@ import { SkeletonDetailComponent } from '../../../shared/components/skeleton/ske
 									(click)="openImageModal(i)"
 									class="w-full h-32 object-cover rounded-lg shadow-md hover:scale-105 transition-transform cursor-pointer"
 								/>
+							}
+						</div>
+					</section>
+				}
+
+				<!-- Videos Section -->
+				@if (movie() && movieVideos().length > 0) {
+					<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
+						<div class="flex items-center gap-2 mb-4">
+							<i class="ph ph-play-circle text-2xl text-red-600 dark:text-red-400" aria-hidden="true"></i>
+							<h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'DETAILS.VIDEOS' | translate }}</h3>
+						</div>
+						<!-- Videos slider with scroll buttons -->
+						<div class="relative">
+							<!-- Left arrow -->
+							@if (canScrollLeftVideos()) {
+							<button
+								(click)="scrollVideos('left')"
+								class="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center z-10 hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+								aria-label="Scroll left"
+							>
+								<i class="ph ph-caret-left text-gray-700 dark:text-gray-300" aria-hidden="true"></i>
+							</button>
+							}
+
+							<div #videosScroll class="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scroll-smooth" (scroll)="onVideosScroll()">
+								@for (video of movieVideos().slice(0, 8); track video.id) {
+									<a
+										[href]="'https://www.youtube.com/watch?v=' + video.key"
+										target="_blank"
+										rel="noopener noreferrer"
+										[attr.aria-label]="'DETAILS.WATCH_ON_YOUTUBE' | translate"
+										class="group relative block rounded-lg overflow-hidden shadow-md group-hover:shadow-xl hover:scale-105 flex-shrink-0 w-48 transition-transform"
+									>
+										<img
+											[src]="'https://img.youtube.com/vi/' + video.key + '/hqdefault.jpg'"
+											[alt]="video.name"
+											class="w-full h-32 object-cover"
+										/>
+										<!-- Play icon overlay -->
+										<div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/50 transition-colors">
+											<i class="ph-fill ph-play-circle text-5xl text-white drop-shadow-lg group-hover:scale-110 transition-transform" aria-hidden="true"></i>
+										</div>
+										<!-- Type badge -->
+										<span class="absolute top-2 right-2 px-2 py-1 bg-red-600 text-white text-xs font-medium rounded">
+											@if (video.type === 'Trailer') {
+												{{ 'DETAILS.TRAILER' | translate }}
+											} @else if (video.type === 'Teaser') {
+												{{ 'DETAILS.TEASER' | translate }}
+											} @else {
+												{{ 'DETAILS.CLIP' | translate }}
+											}
+										</span>
+										<!-- Video name -->
+										<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+											<p class="text-xs text-white font-medium line-clamp-2">{{ video.name }}</p>
+										</div>
+									</a>
+								}
+							</div>
+
+							<!-- Right arrow -->
+							@if (canScrollRightVideos()) {
+							<button
+								(click)="scrollVideos('right')"
+								class="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center z-10 hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+								aria-label="Scroll right"
+							>
+								<i class="ph ph-caret-right text-gray-700 dark:text-gray-300" aria-hidden="true"></i>
+							</button>
+							}
+						</div>
+					</section>
+				}
+
+				<!-- Collection Section -->
+				@if (movie() && collectionMovies().length > 0) {
+					<section class="bg-gray-200 dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-md">
+						<div class="flex items-center gap-2 mb-4">
+							<i class="ph ph-film-strip text-2xl text-cyan-600 dark:text-cyan-400" aria-hidden="true"></i>
+							<h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'DETAILS.COLLECTION' | translate }}</h3>
+							@if (collectionName()) {
+								<span class="text-sm text-gray-600 dark:text-gray-400">({{ collectionName() }})</span>
+							}
+						</div>
+						<!-- Collection slider with scroll buttons -->
+						<div class="relative">
+							<!-- Left arrow -->
+							@if (canScrollLeft()) {
+							<button
+								(click)="scrollCollection('left')"
+								class="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center z-10 hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+								aria-label="Scroll left"
+							>
+								<i class="ph ph-caret-left text-gray-700 dark:text-gray-300" aria-hidden="true"></i>
+							</button>
+							}
+
+							<div #collectionScroll class="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scroll-smooth" (scroll)="onCollectionScroll()">
+								@for (collectionMovie of collectionMovies(); track collectionMovie.id) {
+								@if (isCurrentMovie(collectionMovie.id)) {
+									<!-- Current movie - not clickable with badge -->
+									<div class="h-[220px] flex flex-col justify-between relative group">
+										<div class="w-28 md:w-32 rounded-lg overflow-hidden shadow-md opacity-75 flex-shrink-0">
+											@if (collectionMovie.posterPath) {
+												<img
+													[src]="collectionMovie.posterPath"
+													[alt]="collectionMovie.title"
+													class="w-full h-40 object-fill"
+												/>
+											} @else {
+												<div class="w-full h-40 bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+													<i class="ph ph-film text-3xl text-gray-400" aria-hidden="true"></i>
+												</div>
+											}
+										</div>
+										<div class="mt-2 flex flex-col justify-between flex-1 overflow-hidden">
+											<p class="text-xs text-gray-700 dark:text-gray-300 font-medium text-center break-words whitespace-normal max-w-[128px]">{{ collectionMovie.title }}</p>
+											@if (collectionMovie.releaseDate) {
+												<p class="text-xs text-gray-500 dark:text-gray-400 text-center"><i class="ph ph-calendar-blank mr-1" aria-hidden="true"></i>{{ collectionMovie.releaseDate.split('-')[0] }}</p>
+											}
+										</div>
+										<!-- Current badge -->
+										<span class="absolute top-2 left-2 px-2 py-0.5 bg-blue-600 text-white text-xs font-medium rounded-full shadow-lg">
+											{{ 'DETAILS.CURRENT_MOVIE' | translate }}
+										</span>
+									</div>
+								} @else {
+									<!-- Other movies - clickable -->
+									<a
+										[routerLink]="['/movies', 'tmdb_' + collectionMovie.id]"
+										class="h-[220px] flex flex-col justify-between flex-shrink-0 block group cursor-pointer hover:scale-105 transition-transform"
+									>
+										<div class="w-28 md:w-32 rounded-lg overflow-hidden shadow-md group-hover:shadow-xl flex-shrink-0">
+											@if (collectionMovie.posterPath) {
+												<img
+													[src]="collectionMovie.posterPath"
+													[alt]="collectionMovie.title"
+													class="w-full h-40 object-fill"
+												/>
+											} @else {
+												<div class="w-full h-40 bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+													<i class="ph ph-film text-3xl text-gray-400" aria-hidden="true"></i>
+												</div>
+											}
+										</div>
+										<div class="mt-2 flex flex-col justify-between flex-1 overflow-hidden">
+											<p class="text-xs text-gray-700 dark:text-gray-300 font-medium text-center break-words whitespace-normal max-w-[128px] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ collectionMovie.title }}</p>
+											@if (collectionMovie.releaseDate) {
+												<p class="text-xs text-gray-500 dark:text-gray-400 text-center"><i class="ph ph-calendar-blank mr-1" aria-hidden="true"></i>{{ collectionMovie.releaseDate.split('-')[0] }}</p>
+											}
+										</div>
+									</a>
+								}
+							}
+						</div>
+
+						<!-- Right arrow -->
+							@if (canScrollRight()) {
+							<button
+								(click)="scrollCollection('right')"
+								class="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center z-10 hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+								aria-label="Scroll right"
+							>
+								<i class="ph ph-caret-right text-gray-700 dark:text-gray-300" aria-hidden="true"></i>
+							</button>
 							}
 						</div>
 					</section>
@@ -396,7 +573,7 @@ import { SkeletonDetailComponent } from '../../../shared/components/skeleton/ske
 	`,
 	],
 })
-export class MovieDetailPage implements OnInit {
+export class MovieDetailPage implements OnInit, AfterViewInit {
 	private route = inject(ActivatedRoute);
 	private router = inject(Router);
 	private location = inject(Location);
@@ -467,6 +644,44 @@ export class MovieDetailPage implements OnInit {
 
 	// Backdrops for scenes section
 	backdrops = computed(() => this.apiService.movieBackdrops());
+
+	// Movie videos
+	movieVideos = computed(() => this.apiService.movieVideos());
+
+	// Collection
+	movieCollection = computed(() => this.apiService.movieCollection());
+
+	// Collection movies (including current movie, sorted by release date)
+	collectionMovies = computed(() => {
+		const collection = this.movieCollection();
+		if (!collection?.parts) return [];
+		// Sort by release date ascending (chronological order)
+		const sorted = [...collection.parts].sort((a, b) => {
+			const dateA = a.releaseDate || '';
+			const dateB = b.releaseDate || '';
+			return dateA.localeCompare(dateB);
+		});
+		return sorted;
+	});
+
+	// Collection name
+	collectionName = computed(() => {
+		const collection = this.movieCollection();
+		return collection?.name || '';
+	});
+
+	// Get current TMDb ID
+	private getCurrentTmdbId(): number {
+		const movie = this.movie();
+		if (!movie?.imdbID) return 0;
+		const id = movie.imdbID;
+		return parseInt(id.startsWith('tmdb_') ? id.replace('tmdb_', '') : '0', 10);
+	}
+
+	// Check if movie is current movie in collection
+	isCurrentMovie(movieId: number): boolean {
+		return movieId === this.getCurrentTmdbId();
+	}
 
 	// Image modal state
 	showImageModal = signal(false);
@@ -548,6 +763,31 @@ export class MovieDetailPage implements OnInit {
 					// Keep 20 for modal, but only display 8 in scenes
 					this.apiService.movieBackdrops.set(unique.slice(0, 20));
 				});
+
+				// Fetch videos (YouTube only, trailers/teasers/clips)
+				this.apiService.getMovieVideos(id).subscribe({
+					error: (err) => console.error('Failed to load videos:', err),
+				});
+			}
+		});
+
+		// Effect: fetch collection when movie has belongs_to_collection
+		effect(() => {
+			const movie = this.movie();
+			if (!movie) return;
+
+			// Clear previous collection when movie changes
+			this.apiService.movieCollection.set(null);
+
+			if (movie.belongs_to_collection?.id) {
+				const collectionId = movie.belongs_to_collection.id;
+				this.apiService.getCollectionDetails(collectionId).subscribe({
+					next: () => {
+						// Position scroll based on current movie after collection loads
+						setTimeout(() => this.positionCollectionScroll(), 100);
+					},
+					error: (err) => console.error('Failed to load collection:', err),
+				});
 			}
 		});
 
@@ -577,8 +817,120 @@ export class MovieDetailPage implements OnInit {
 			const id = params['id'];
 			if (id) {
 				this.movieId.set(id);
+				// Reset scroll position to top when navigating to a new movie
+				if (typeof window !== 'undefined') {
+					window.scrollTo(0, 0);
+				}
 			}
 		});
+	}
+
+	// ViewChild for collection scroll container
+	@ViewChild('collectionScroll') collectionScrollRef?: ElementRef<HTMLDivElement>;
+
+	// Track scroll position for arrow visibility
+	canScrollLeft = signal(false);
+	canScrollRight = signal(true);
+
+	ngAfterViewInit(): void {
+		// Check scroll position after view is initialized
+		setTimeout(() => {
+			this.updateCollectionScrollButtons();
+			this.updateVideosScrollButtons();
+			this.positionCollectionScroll();
+		}, 100);
+	}
+
+	// Scroll collection left or right
+	scrollCollection(direction: 'left' | 'right'): void {
+		const container = this.collectionScrollRef?.nativeElement;
+		if (!container) return;
+
+		const scrollAmount = 300; // Width of ~4 cards
+		if (direction === 'left') {
+			container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+		} else {
+			container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+		}
+	}
+
+	// Update scroll button visibility
+	onCollectionScroll(): void {
+		this.updateCollectionScrollButtons();
+	}
+
+	private updateCollectionScrollButtons(): void {
+		const container = this.collectionScrollRef?.nativeElement;
+		if (!container) return;
+
+		const { scrollLeft, scrollWidth, clientWidth } = container;
+		const hasItemsToScroll = scrollWidth > clientWidth;
+		this.canScrollLeft.set(scrollLeft > 0);
+		// Show right arrow only if there's more than 5 items visible (collection cards are ~140px wide)
+		this.canScrollRight.set(hasItemsToScroll && scrollLeft < scrollWidth - clientWidth - 10 && scrollWidth / 140 > 5);
+	}
+
+	// Position collection scroll based on current movie position
+	positionCollectionScroll(): void {
+		const container = this.collectionScrollRef?.nativeElement;
+		if (!container) return;
+
+		const collection = this.movieCollection();
+		if (!collection?.parts || collection.parts.length <= 5) return;
+
+		const currentId = this.getCurrentTmdbId();
+		const movieIndex = collection.parts.findIndex((m) => m.id === currentId);
+
+		if (movieIndex === -1) return;
+
+		// If current movie is after position 5, scroll to the right
+		if (movieIndex >= 5) {
+			container.scrollLeft = container.scrollWidth;
+		} else {
+			// Otherwise, scroll to the beginning
+			container.scrollLeft = 0;
+		}
+
+		// Update arrow visibility after positioning
+		this.updateCollectionScrollButtons();
+	}
+
+	// ViewChild for videos scroll container
+	@ViewChild('videosScroll') videosScrollRef?: ElementRef<HTMLDivElement>;
+
+	// Track scroll position for videos arrow visibility
+	canScrollLeftVideos = signal(false);
+	canScrollRightVideos = signal(true);
+
+	// Scroll videos left or right
+	scrollVideos(direction: 'left' | 'right'): void {
+		const container = this.videosScrollRef?.nativeElement;
+		if (!container) return;
+
+		const scrollAmount = 200; // Width of ~4 video cards
+		if (direction === 'left') {
+			container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+		} else {
+			container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+		}
+	}
+
+	// Update videos scroll button visibility
+	onVideosScroll(): void {
+		this.updateVideosScrollButtons();
+	}
+
+	private updateVideosScrollButtons(): void {
+		const container = this.videosScrollRef?.nativeElement;
+		if (!container) return;
+
+		const { scrollLeft, scrollWidth, clientWidth } = container;
+		const hasItemsToScroll = scrollWidth > clientWidth;
+		this.canScrollLeftVideos.set(scrollLeft > 0);
+		// Show right arrow only if there's more than 4 items visible (video cards are ~192px wide)
+		this.canScrollRightVideos.set(
+			hasItemsToScroll && scrollLeft < scrollWidth - clientWidth - 10 && scrollWidth / 192 > 4,
+		);
 	}
 
 	/**
