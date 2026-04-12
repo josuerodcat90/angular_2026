@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError, forkJoin } from 'rxjs';
 import { tap, catchError, finalize, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
-import { OmdbMovie, OmdbSearchResponse, Movie, Video, Collection, CollectionMovie } from '../models/movie.model';
+import { OmdbMovie, OmdbSearchResponse, Movie, Video, Collection } from '../models/movie.model';
 import { LanguageService } from '../../../services/language.service';
 
 /**
