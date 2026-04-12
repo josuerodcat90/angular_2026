@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError, forkJoin } from 'rxjs';
 import { tap, catchError, finalize, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
-import { OmdbMovie, OmdbSearchResponse, Movie } from '../models/movie.model';
+import { OmdbMovie, OmdbSearchResponse, Movie, Video, Collection } from '../models/movie.model';
 import { LanguageService } from '../../../services/language.service';
 
 /**
@@ -70,6 +70,7 @@ export class MoviesApiService {
 			Actors: actors,
 			voteAverage: movie.vote_average || 0,
 			voteCount: movie.vote_count || 0,
+			belongs_to_collection: movie.belongs_to_collection || undefined,
 		};
 	}
 
@@ -115,6 +116,30 @@ export class MoviesApiService {
 
 	// Movie backdrops for detail page (scenes)
 	movieBackdrops = signal<any[]>([]);
+
+	// Movie videos for detail page (YouTube trailers/teasers)
+	movieVideos = signal<Video[]>([]);
+
+	// Movie collection for detail page (franchise/series)
+	movieCollection = signal<Collection | null>(null);
+
+	// Simple caching for API calls (Map<endpoint, response>)
+	private cache = new Map<string, { data: any; timestamp: number }>();
+	private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+	// Check and get from cache
+	private getFromCache<T>(key: string): T | null {
+		const cached = this.cache.get(key);
+		if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+			return cached.data as T;
+		}
+		return null;
+	}
+
+	// Set cache
+	private setCache(key: string, data: any): void {
+		this.cache.set(key, { data, timestamp: Date.now() });
+	}
 
 	// Selected year for top rated (default to current year)
 	selectedYear = signal(new Date().getFullYear());
@@ -402,5 +427,128 @@ export class MoviesApiService {
 				return of([]);
 			}),
 		);
+	}
+
+	/**
+	 * Get movie videos (trailers, teasers, clips) from TMDb
+	 * Filters for YouTube only, Trailer/Teaser/Clip types
+	 */
+	getMovieVideos(id: string): Observable<Video[]> {
+		if (!id) {
+			return of([]);
+		}
+
+		// Extract TMDb ID
+		const tmdbId = id.startsWith('tmdb_') ? id.replace('tmdb_', '') : id;
+
+		// Check cache first
+		const cacheKey = `videos_${tmdbId}_${this.languageService.getTmdbLanguage()}`;
+		const cached = this.getFromCache<Video[]>(cacheKey);
+		if (cached) {
+			this.movieVideos.set(cached);
+			return of(cached);
+		}
+
+		return this.http
+			.get<any>(`${this.BASE_URL}/movie/${tmdbId}/videos`, {
+				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
+			})
+			.pipe(
+				map((response) => {
+					const videos: Video[] = (response.results || [])
+						.filter(
+							(v: any) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser' || v.type === 'Clip'),
+						)
+						.map((v: any) => ({
+							id: v.id,
+							key: v.key,
+							name: v.name,
+							site: v.site,
+							type: v.type,
+						}));
+					return videos;
+				}),
+				tap((videos) => {
+					this.movieVideos.set(videos);
+					this.setCache(cacheKey, videos);
+				}),
+				catchError((err) => {
+					console.error('Failed to load movie videos:', err);
+					this.movieVideos.set([]);
+					return of([]);
+				}),
+			);
+	}
+
+	/**
+	 * Get collection details (franchise/series movies) from TMDb
+	 */
+	getCollectionDetails(collectionId: number): Observable<Collection | null> {
+		if (!collectionId) {
+			return of({
+				id: 0,
+				name: '',
+				overview: '',
+				posterPath: null,
+				backdropPath: null,
+				parts: [],
+			});
+		}
+
+		// Check cache first
+		const cacheKey = `collection_${collectionId}_${this.languageService.getTmdbLanguage()}`;
+		const cached = this.getFromCache<Collection>(cacheKey);
+		if (cached) {
+			this.movieCollection.set(cached);
+			return of(cached);
+		}
+
+		return this.http
+			.get<any>(`${this.BASE_URL}/collection/${collectionId}`, {
+				params: { api_key: this.API_KEY, ...this.getLanguageParams() },
+			})
+			.pipe(
+				map((response) => {
+					const collection: Collection = {
+						id: response.id,
+						name: response.name || '',
+						overview: response.overview || '',
+						posterPath: response.poster_path ? `${this.IMAGE_BASE}${response.poster_path}` : null,
+						backdropPath: response.backdrop_path ? `https://image.tmdb.org/t/p/w780${response.backdrop_path}` : null,
+						parts: (response.parts || []).map((p: any) => ({
+							id: p.id,
+							title: p.title || '',
+							originalTitle: p.original_title || '',
+							releaseDate: p.release_date || '',
+							posterPath: p.poster_path ? `${this.IMAGE_BASE}${p.poster_path}` : null,
+							backdropPath: p.backdrop_path ? `https://image.tmdb.org/t/p/w780${p.backdrop_path}` : null,
+						})),
+					};
+					return collection;
+				}),
+				tap((collection) => {
+					this.movieCollection.set(collection);
+					this.setCache(cacheKey, collection);
+				}),
+				catchError((err) => {
+					console.error('Failed to load collection:', err);
+					this.movieCollection.set(null);
+					return of(null);
+				}),
+			);
+	}
+
+	/**
+	 * Clear collection data (call when leaving detail page)
+	 */
+	clearCollection(): void {
+		this.movieCollection.set(null);
+	}
+
+	/**
+	 * Clear videos data (call when leaving detail page)
+	 */
+	clearVideos(): void {
+		this.movieVideos.set([]);
 	}
 }
