@@ -33,11 +33,12 @@ bun run start
 1. Get your free TMDb API key at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api)
 
 2. Open `src/environments/environment.ts` and replace `YOUR_API_KEY_HERE` with your actual key:
+
 ```typescript
 export const environment = {
-  production: false,
-  tmdbApiKey: 'YOUR_API_KEY_HERE',
-  tmdbBaseUrl: 'https://api.themoviedb.org/3',
+	production: false,
+	tmdbApiKey: 'YOUR_API_KEY_HERE',
+	tmdbBaseUrl: 'https://api.themoviedb.org/3',
 };
 ```
 
@@ -45,14 +46,14 @@ export const environment = {
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `bun run start` | Start dev server (http://localhost:4200) |
-| `bun run build` | Production build + format |
-| `bun run watch` | Watch mode for development |
-| `bun run test` | Run tests with Vitest |
-| `bun run format` | Format code with Biome |
-| `bun run serve:ssr` | Serve SSR production build |
+| Command             | Description                              |
+| ------------------- | ---------------------------------------- |
+| `bun run start`     | Start dev server (http://localhost:4200) |
+| `bun run build`     | Production build + format                |
+| `bun run watch`     | Watch mode for development               |
+| `bun run test`      | Run tests with Vitest                    |
+| `bun run format`    | Format code with Biome                   |
+| `bun run serve:ssr` | Serve SSR production build               |
 
 ## Features
 
@@ -87,13 +88,14 @@ export const environment = {
 
 ## External Libraries
 
-| Library | Version | Description |
-|---------|---------|-------------|
-| [Phosphor Icons](https://phosphoricons.com/) | 2.1.2 | Premium icon family for polished UI |
-| [Tailwind CSS](https://tailwindcss.com/) | 4.2.2 | Utility-first CSS framework |
-| [ngx-translate](https://github.com/ngx-translate/core) | 17.0+ | Internationalization (i18n) for Angular |
-| [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) | Native | Native browser API for smooth theme switch animations |
-| [TMDb API](https://www.themoviedb.org/) | v3 | The Movie Database for movie data |
+| Library                                                                                       | Version | Description                                           |
+| --------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------- |
+| [Phosphor Icons](https://phosphoricons.com/)                                                  | 2.1.2   | Premium icon family for polished UI                   |
+| [Tailwind CSS](https://tailwindcss.com/)                                                      | 4.2.2   | Utility-first CSS framework                           |
+| [ngx-translate](https://github.com/ngx-translate/core)                                        | 17.0+   | Internationalization (i18n) for Angular               |
+| [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) | Native  | Native browser API for smooth theme switch animations |
+| [TMDb API](https://www.themoviedb.org/)                                                       | v3      | The Movie Database for movie data                     |
+| [Vitest](https://github.com/vitest-dev/vitest)                                                | latest  | Testing framework used in the project                 |
 
 > **Note**: This project uses Angular Signals for state management—no external state management libraries (NgRx, RxJS, etc.) required.
 
@@ -138,13 +140,16 @@ src/
 ## UI/UX Highlights
 
 ### Tailwind Integration
+
 The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
+
 - Dark mode with `dark:` variants
 - Backdrop blur effects for premium frosted glass look
 - Gradient overlays and glassmorphism
 - Custom animations and transitions
 
 ### Skeleton Loaders
+
 - Three reusable skeleton components: Card, Slider, Detail
 - Match exact dimensions of actual components (300px poster, 140x210px slider items)
 - Dark mode support with `dark:bg-gray-700`
@@ -152,12 +157,14 @@ The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
 - OnPush change detection for optimal performance
 
 ### Movie Detail Page
+
 - Hero section with frosted glass background image
 - Genre tags with color-coded badges
 - Interactive Scenes gallery with image modal
 - Rating cards with TMDb score visualization
 
 ### Custom Select Component
+
 - Fully custom dropdown replacing native HTML selects
 - Searchable options
 - i18n support for labels
@@ -165,12 +172,14 @@ The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
 - Consistent styling across light/dark modes
 
 ### Search & Filtering
+
 - Auto-search with debounce (300ms)
 - Clear button inside search input
 - Last search query persistence
 - Multi-criteria sorting (year, rating, title)
 
 ### Image Modal
+
 - Keyboard navigation (ArrowLeft, ArrowRight, Escape)
 - Smooth fade-in/out transitions with subtle delay
 - Body scroll lock when open
@@ -178,6 +187,7 @@ The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
 - Image counter display (e.g., "3 / 20")
 
 ### Theme Toggle Animation
+
 - Uses the native View Transitions API
 - Polygon gradient effect that expands from top-left corner
 - Smooth 1.5s animation with custom easing
@@ -185,6 +195,7 @@ The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
 - Fallback for browsers without View Transitions support
 
 ### Internationalization (i18n)
+
 - Full English/Spanish support
 - Language persistence in localStorage
 - All UI strings translated
@@ -205,25 +216,40 @@ The project was migrated from SCSS-only to Tailwind CSS v4, featuring:
 ## Development Notes
 
 ### SSR Compatibility
+
 Services using `localStorage` or `document` must check for browser environment:
+
 ```typescript
 // Check before accessing browser-only APIs
 if (typeof document !== 'undefined') {
-  document.body.style.overflow = 'hidden';
+	document.body.style.overflow = 'hidden';
 }
 ```
 
 ### Signals Usage
+
 - Use `signal()` for writable state
 - Use `.asReadonly()` for public read-only access
 - Use `computed()` for derived state
 - Use `effect()` for side effects (DOM manipulation, API calls)
 
 ### Animations
+
 - CSS keyframes for component-level effects (fade, slide, zoom)
 - Custom `imageFade` animation for modal transitions
 - Tailwind `transition-*` classes for hover states
 - Angular view transitions via `withViewTransitions()`
+
+## License
+
+## Contributed Repositories
+
+The following open-source repositories provided code, ideas, or inspiration used in this project:
+
+| Repository | URL                                                | Description                                                                         |
+| ---------: | -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+|   opencode | https://github.com/anomalyco/opencode              | The open source AI coding agent.                                                    |
+|  gentle-ai | https://github.com/Gentleman-Programming/gentle-ai | One command. Any agent. Any OS. The Gentleman AI ecosystem -- configured and ready. |
 
 ## License
 
